@@ -1,8 +1,7 @@
-% @Author: Taieb Jemal
-% @Date:   2025-08-12
-
-% Collaborators: Chedy Chaaben, Youssef Kammoun, Baha Eddin Babay
-% Original Template: Mr Nizar TENZEKHTI
+% @Author:  Youssef Ayadi
+% @Project: SIPMS — Smart Internship and Project Management System
+% @Company: CLINISYS
+% @Year:    2024/2025
 
 \documentclass[12pt, oneside, a4paper]{Configuration/IIT-report}
 
@@ -14,55 +13,67 @@
 \include{Configuration/Commands}
 
 \hypersetup{
-  pdftitle={\reportTitle~-~\reportSubject},%
-  pdfauthor={\reportAuthor},%
-  pdfsubject={\reportSubject},%
-  pdfkeywords={report} {internship} {pfe} {IIT-Sfax}
+  pdftitle={Smart Internship and Project Management System - SIPMS},%
+  pdfauthor={Youssef Ayadi},%
+  pdfsubject={Final Year Project — CLINISYS},%
+  pdfkeywords={SIPMS} {internship} {management} {Spring Boot} {React} {AI} {IIT-Sfax}
 }
 \dominitoc
 \begin{document}
     \input{chapitre/00-PageDeGarde}
     
-    % page number & space
-    \pagenumbering{arabic}% 1 2 3 4 5
+    % Page numbering
+    \pagenumbering{arabic}
     \doublespacing{}
     
+    % Dedication
     \input{chapitre/01-Dedication}
 
+    % Acknowledgements
     \input{chapitre/02-Remerciement}
 
-    % TABLE DES MATIÈRES & LISTE DES FIGURES
+    % TABLE OF CONTENTS & LIST OF FIGURES
     \addtocontents{toc}{\protect\thispagestyle{MyStyle}}
-        \renewcommand*\contentsname{TABLE DES MATIÈRES}
+        \renewcommand*\contentsname{TABLE OF CONTENTS}
         \begin{spacing}{1}
             \tableofcontents
         \end{spacing}
         \addtocontents{lof}{\protect\thispagestyle{MyStyle}}
-        \renewcommand{\listfigurename}{LISTE DES FIGURES}
+        \renewcommand{\listfigurename}{LIST OF FIGURES}
         \begin{spacing}{1}
             \listoffigures
         \end{spacing}
         \addcontentsline{toc}{chapter}{\listfigurename}
         \adjustmtc
 
+    % Abbreviations
     \input{chapitre/03-ListeDesAbr}
     
+    % General Introduction
     \input{chapitre/04-IntroductionGeneral}
     
+    % Chapter 1 — General Project Framework
     \input{chapitre/05-Chapitre1}
 
+    % Chapter 2 — Requirements Analysis
     \input{chapitre/06-Chapitre2}
 
+    % Chapter 3 — System Design
     \input{chapitre/07-Chapitre3}
     
+    % Chapter 4 — Implementation
     \input{chapitre/08-Chapitre4}
     
+    % General Conclusion
     \input{chapitre/09-ConclusionGenerale}
 
+    % Bibliography
     \input{chapitre/10-Bibliographie}
 
+    % Annexes (optional)
     \input{chapitre/11-Annexes}
     
+    % Back cover
     \input{chapitre/12-DosDuRapport}
 
 \end{document}

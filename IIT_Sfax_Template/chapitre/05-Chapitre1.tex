@@ -1,97 +1,145 @@
-\chapter{TITRE DE CHAPITRE 1}
+\chapter{GENERAL PROJECT FRAMEWORK}
 \begin{spacing}{1.2}
 \minitoc
 \thispagestyle{MyStyle}
 \end{spacing}
 \newpage
 
-% ========================
 \section{INTRODUCTION}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.\cite{titreBIB1}
+This chapter presents the general framework of our final-year project. We begin by introducing the host organization CLINISYS, followed by a critical analysis of the existing system. We then define the core problem statement, present the proposed SIPMS solution, and describe the Scrum agile methodology adopted for the development process.
 
-\section{SECTION 1.2 — Exemple de paragraphe}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.
+\section{PRESENTATION OF THE HOST ORGANIZATION}
 
-\subsection{Sous-section avec liste à puces}
+\subsection{About CLINISYS}
+CLINISYS is a technology company specializing in the development of innovative digital solutions for industrial and academic sectors. With deep expertise in software engineering, the company supports its clients in their digital transformation journeys by delivering custom-built systems that combine performance, security, and usability.
+
+\par
+As part of its commitment to talent development and innovation, CLINISYS welcomes a growing number of interns from higher education institutions each year. This ongoing engagement with academic talent has highlighted the urgent need for a structured digital tool capable of managing the full internship lifecycle efficiently.
+
+\subsection{Key Activity Areas}
 \renewcommand{\labelitemi}{\tiny$\bullet$}
 \begin{itemize}[leftmargin=2cm, topsep=0pt]
     \begin{spacing}{1.25}
-        \item Point générique 1
-        \item Point générique 2
-        \item Point générique 3
+        \item Custom web and mobile application development
+        \item Digital transformation consulting and process optimization
+        \item Artificial intelligence and data analytics integration
+        \item Enterprise information system management and hosting
     \end{spacing}
 \end{itemize}
 
-\subsection{Sous-section avec numérotation}
-\begin{enumerate}
-    \item Premier élément
-    \item Deuxième élément
-    \item Troisième élément
-\end{enumerate}
+\section{ANALYSIS OF THE EXISTING SYSTEM}
 
-% ========================
-\section{SECTION 1.3 — Exemple d’image}
-\subsection{Insertion d’une image}
-\begin{figure}[H]%
-    \centering
-    \fbox{\includegraphics[width=10cm]{images/TemplateImages/Image-Exemple.jpg}}
-    \caption{Titre de figure (exemple)}
-\end{figure}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.\cite{titreBIB2}
+\subsection{Description of the Current System}
+Prior to the development of SIPMS, CLINISYS managed its internship and project workflows using entirely manual processes. Candidate registration was performed on paper forms, communication relied on unstructured emails, and progress tracking depended on Excel spreadsheets maintained manually by reception staff. Document management — including CVs, cover letters, and academic transcripts — was disorganized and difficult to query.
 
-\subsection{Insertion de deux images côte à côte}
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}{0.45\textwidth}
-        \includegraphics[width=\linewidth]{images/TemplateImages/Image-Exemple.jpg}
-        \caption{Image A}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.45\textwidth}
-        \includegraphics[width=\linewidth]{images/TemplateImages/Image-Exemple.jpg}
-        \caption{Image B}
-    \end{subfigure}
-    \caption{Exemple d’images côte à côte}
-\end{figure}
+\subsection{Identified Limitations}
+The analysis of the existing system revealed several critical dysfunctions, summarized in the table below:
 
-% ========================
-\section{SECTION 1.4 — Exemple de tableau}
 \begin{table}[H]
 \centering
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|p{4.5cm}|p{8.5cm}|}
 \hline
-Colonne 1 & Colonne 2 & Colonne 3 \\
+\rowcolor{gray!20}
+\textbf{Identified Problem} & \textbf{Organizational Impact} \\
 \hline
-Valeur 1 & Valeur 2 & Valeur 3 \\
-Valeur 4 & Valeur 5 & Valeur 6 \\
+Manual candidate registration & High risk of data entry errors, loss of records, slow onboarding process \\
+\hline
+No competency evaluation system & Inability to objectively assess candidates' technical skills \\
+\hline
+Non-automated communication & Significant delays in sending login credentials and notifications \\
+\hline
+No year-based filtering & Difficulty retrieving and managing candidates from a given intake year \\
+\hline
+Absent document management & CVs and supporting documents stored in an unstructured manner \\
+\hline
+Manual project assignment & Subjective, time-consuming process with no defined relevance criteria \\
 \hline
 \end{tabular}
-\caption{Titre du tableau (exemple)}
+\caption{Summary of existing system limitations}
 \end{table}
 
-% ========================
-\section{SECTION 1.5 — Exemple de graphique}
-\begin{figure}[H]
+\section{PROBLEM STATEMENT}
+Given the shortcomings of the current system, CLINISYS expressed the need for a centralized digital solution capable of handling the complete internship candidate lifecycle. The core problem statement is formulated as follows:
+
+\par
+\textit{``How can a smart web platform be designed and developed to automate and centralize the management of internship candidates — from registration to supervised project assignment — while ensuring data security, action traceability, and an optimal user experience for all stakeholders involved?''}
+
+\section{PROPOSED SOLUTION}
+
+\subsection{The SIPMS Platform}
+In response to this problem, we propose the development of the \textbf{Smart Internship and Project Management System (SIPMS)}, a full-stack, multi-role web platform. The solution provides:
+
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item A \textbf{Reception Panel} enabling receptionists to register candidates, upload their documents (CV, cover letter, academic transcript, ID card), and filter candidates by internship year.
+        \item An \textbf{automated quiz system} for objective, role-specific evaluation of candidates' technical competencies.
+        \item An \textbf{AI engine} for project ranking and intelligent matching between candidates and available supervisors.
+        \item An \textbf{automated email system} that instantly sends login credentials upon candidate account creation.
+        \item \textbf{Role-differentiated dashboards} tailored to each user type: Administrator, Manager, Receptionist, Candidate, and Supervisor.
+        \item \textbf{Complete application lifecycle management}, tracking each candidature from submission through review, quiz evaluation, and final project assignment.
+    \end{spacing}
+\end{itemize}
+
+\subsection{Technology Stack Overview}
+\begin{table}[H]
 \centering
-\begin{tikzpicture}
-\begin{axis}[
-    width=10cm, height=6cm,
-    xlabel={Axe X},
-    ylabel={Axe Y},
-    grid=major,
-]
-\addplot coordinates {(1,1) (2,3) (3,2) (4,4)};
-\addplot coordinates {(1,2) (2,2) (3,3) (4,3)};
-\legend{Courbe 1, Courbe 2}
-\end{axis}
-\end{tikzpicture}
-\caption{Exemple de graphique avec pgfplots}
-\end{figure}
+\begin{tabular}{|p{3.5cm}|p{4cm}|p{5.5cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Layer} & \textbf{Technology} & \textbf{Role} \\
+\hline
+Frontend & React (Vite) + CSS & Reactive single-page application \\
+\hline
+Backend & Spring Boot (Java 17) & RESTful API, business logic \\
+\hline
+Security & Spring Security + JWT & Stateless authentication, RBAC \\
+\hline
+Database & MySQL 8 & Relational data persistence \\
+\hline
+Email & JavaMail (Gmail SMTP) & Automated transactional emails \\
+\hline
+File Storage & Spring Multipart & CV and document upload \\
+\hline
+AI Module & Custom scoring engine & Project ranking, candidate matching \\
+\hline
+\end{tabular}
+\caption{SIPMS technology stack}
+\end{table}
 
-% ========================
-\section{SECTION 1.6 — Exemple de texte avec citation}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor.\cite{titreBIB3}
+\section{DEVELOPMENT METHODOLOGY}
 
-% ========================
+\subsection{Choice of Methodology: Scrum}
+We adopted the \textbf{Scrum} agile framework for this project. This choice is justified by the iterative nature of the requirements, the need to deliver functional increments regularly, and the flexibility required to accommodate changes during development.
+
+\subsection{Scrum Framework}
+Scrum organizes development into short iterations called \textbf{Sprints}, typically lasting two to three weeks. Each sprint produces a potentially shippable product increment. The key Scrum artifacts used in this project are:
+
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item \textbf{Product Backlog}: A prioritized list of all features to be developed.
+        \item \textbf{Sprint Backlog}: The subset of the Product Backlog selected for a given sprint.
+        \item \textbf{Increment}: A functional version of the software delivered at the end of each sprint.
+    \end{spacing}
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|p{4.5cm}|p{6.5cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Sprint} & \textbf{Main Objective} & \textbf{Delivered Features} \\
+\hline
+Sprint 1 & Authentication \& User Management & JWT login, RBAC, role management, base dashboards, change password \\
+\hline
+Sprint 2 & Reception Module & Candidate registration, year filtering, document upload, automated welcome email \\
+\hline
+Sprint 3 & Quiz Module & Quiz creation, candidate assignment, quiz interface, scoring, results \\
+\hline
+Sprint 4 & AI \& Assignment Module & Project ranking, candidate/supervisor matching, final assignment workflow \\
+\hline
+\end{tabular}
+\caption{SIPMS sprint planning}
+\end{table}
+
 \section{CONCLUSION}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.\cite{titreBIB4}
+This chapter established the organizational context of the SIPMS project, highlighted the critical limitations of the manual existing system, and presented the proposed digital solution along with its development methodology. The following chapter will provide a detailed analysis of the functional and non-functional requirements of the platform.

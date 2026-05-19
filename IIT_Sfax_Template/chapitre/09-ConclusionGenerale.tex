@@ -1,10 +1,42 @@
-\chapter*{CONCLUSION GÉNÉRALE}
-\markboth{\MakeUppercase{CONCLUSION GÉNÉRALE}}{}
-\addcontentsline{toc}{chapter}{CONCLUSION GÉNÉRALE}
+\chapter*{GENERAL CONCLUSION}
+\markboth{\MakeUppercase{GENERAL CONCLUSION}}{}
+\addcontentsline{toc}{chapter}{GENERAL CONCLUSION}
 \adjustmtc
 \thispagestyle{MyStyle}
 
+\par
+This final-year project resulted in the successful design and development of \textbf{SIPMS (Smart Internship and Project Management System)}, a comprehensive full-stack web platform built for \textbf{CLINISYS} to digitize and automate the complete internship management lifecycle.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh. Mauris ac mauris sed pede pellentesque fermentum. Maecenas adipiscing ante non diam sodales hendrerit.\par
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh. Mauris ac mauris sed pede pellentesque fermentum. Maecenas adipiscing ante non diam sodales hendrerit.\par
+\par
+Throughout this project, we addressed a real organizational need: replacing a fragmented, manual internship management workflow with a structured, secure, and intelligent digital platform. The system was built following the \textbf{Scrum agile methodology}, delivering four functional sprints that progressively implemented all required features.
 
+\par
+The key achievements of this project are:
+\renewcommand{\labelitemi}{\tiny$\bullet$}
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{Secure multi-role authentication}: A stateless JWT-based system with BCrypt password hashing and fine-grained RBAC enforced across all API endpoints.
+        \item \textbf{Automated candidate onboarding}: The Reception Panel allows receptionists to register candidates, upload multiple documents, filter by internship year, and trigger automated welcome emails — all within a single workflow.
+        \item \textbf{Objective competency evaluation}: A fully configurable quiz system with a timed interface, automatic scoring, and status management ensures fair and consistent candidate assessment.
+        \item \textbf{AI-powered decision support}: Project ranking and candidate-to-supervisor matching algorithms provide managers with data-driven recommendations, reducing subjectivity in assignment decisions.
+        \item \textbf{Complete application lifecycle}: From physical reception to final supervised project assignment, every stage of the internship process is tracked, versioned, and auditable.
+    \end{spacing}
+\end{itemize}
+
+\par
+From a technical perspective, this project provided valuable hands-on experience with a modern, production-grade technology stack: \textbf{React (Vite)} for a reactive and accessible frontend, \textbf{Spring Boot (Java 17)} for a robust and scalable backend, \textbf{MySQL} for relational data management, and \textbf{Spring Security + JWT} for enterprise-grade authentication. The integration of \textbf{JavaMail} for automated notifications and \textbf{Spring Multipart} for document management further enriched the technical scope of the project.
+
+\par
+Looking ahead, several enhancements could further strengthen the SIPMS platform:
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{Mobile application}: A React Native or Flutter companion app allowing candidates to track their status and receive push notifications on the go.
+        \item \textbf{Advanced AI models}: Replacing the current scoring engine with machine learning models trained on historical internship outcome data to produce more accurate matchings.
+        \item \textbf{Electronic signature}: Integrating a digital contract signing module to fully dematerialize the internship agreement workflow.
+        \item \textbf{Analytics dashboard}: A management reporting module with visual KPIs tracking acceptance rates, quiz performance distributions, and supervisor workload trends.
+        \item \textbf{Docker containerization}: Packaging the entire stack (frontend, backend, database) into Docker Compose for simplified deployment and horizontal scalability.
+    \end{spacing}
+\end{itemize}
+
+\par
+In conclusion, the SIPMS platform successfully delivers on its core objective: transforming a manual, error-prone process into an efficient, transparent, and intelligent system that benefits all stakeholders — from the receptionist registering a candidate on day one, to the manager making a data-informed project assignment decision weeks later. This project stands as a solid foundation for continued digital innovation within CLINISYS.

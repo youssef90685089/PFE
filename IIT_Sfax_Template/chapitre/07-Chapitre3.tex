@@ -1,97 +1,195 @@
-\chapter{TITRE DE CHAPITRE 3}
+\chapter{SYSTEM DESIGN}
 \begin{spacing}{1.2}
 \minitoc
 \thispagestyle{MyStyle}
 \end{spacing}
 \newpage
 
-% ========================
 \section{INTRODUCTION}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.\cite{titreBIB1}
+This chapter presents the technical design of the SIPMS platform. We detail the overall system architecture, the class model, the sequence diagrams for key workflows, and the relational database schema.
 
-\section{SECTION 1.2 — Exemple de paragraphe}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.
+\section{GENERAL ARCHITECTURE}
 
-\subsection{Sous-section avec liste à puces}
-\renewcommand{\labelitemi}{\tiny$\bullet$}
+\subsection{Architectural Pattern}
+SIPMS follows a \textbf{client-server architecture} with a clear separation of concerns across three tiers:
+
 \begin{itemize}[leftmargin=2cm, topsep=0pt]
     \begin{spacing}{1.25}
-        \item Point générique 1
-        \item Point générique 2
-        \item Point générique 3
+        \item \textbf{Presentation Layer}: A React (Vite) single-page application running in the browser, communicating with the backend exclusively via RESTful HTTP requests.
+        \item \textbf{Business Logic Layer}: A Spring Boot application exposing a secured REST API, organized into Controllers, Services, and Repositories following the layered architecture pattern.
+        \item \textbf{Data Layer}: A MySQL 8 relational database accessed via Spring Data JPA (Hibernate), with schema managed through entity definitions.
     \end{spacing}
 \end{itemize}
 
-\subsection{Sous-section avec numérotation}
-\begin{enumerate}
-    \item Premier élément
-    \item Deuxième élément
-    \item Troisième élément
-\end{enumerate}
-
-% ========================
-\section{SECTION 1.3 — Exemple d’image}
-\subsection{Insertion d’une image}
-\begin{figure}[H]%
-    \centering
-    \fbox{\includegraphics[width=10cm]{images/TemplateImages/Image-Exemple.jpg}}
-    \caption{Titre de figure (exemple)}
-\end{figure}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.\cite{titreBIB2}
-
-\subsection{Insertion de deux images côte à côte}
 \begin{figure}[H]
     \centering
-    \begin{subfigure}{0.45\textwidth}
-        \includegraphics[width=\linewidth]{images/TemplateImages/Image-Exemple.jpg}
-        \caption{Image A}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.45\textwidth}
-        \includegraphics[width=\linewidth]{images/TemplateImages/Image-Exemple.jpg}
-        \caption{Image B}
-    \end{subfigure}
-    \caption{Exemple d’images côte à côte}
+    \fbox{\includegraphics[width=13cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{Three-tier architecture of the SIPMS platform}
 \end{figure}
 
-% ========================
-\section{SECTION 1.4 — Exemple de tableau}
+\subsection{Backend Package Structure}
+The Spring Boot backend is organized into the following packages:
+
 \begin{table}[H]
 \centering
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|p{4.5cm}|p{8.5cm}|}
 \hline
-Colonne 1 & Colonne 2 & Colonne 3 \\
+\rowcolor{gray!20}
+\textbf{Package} & \textbf{Responsibility} \\
 \hline
-Valeur 1 & Valeur 2 & Valeur 3 \\
-Valeur 4 & Valeur 5 & Valeur 6 \\
+\texttt{controller} & Exposes REST endpoints; handles HTTP requests and responses \\
+\hline
+\texttt{service} & Contains business logic; orchestrates between controllers and repositories \\
+\hline
+\texttt{repository} & Spring Data JPA interfaces for database access \\
+\hline
+\texttt{entity} & JPA entity classes mapped to database tables \\
+\hline
+\texttt{dto} & Data Transfer Objects for request/response payloads \\
+\hline
+\texttt{security} & JWT filter, authentication entry point, Spring Security configuration \\
+\hline
+\texttt{common} & Shared utilities: ApiResponse wrapper, FileStorageService, AuditService \\
+\hline
+\texttt{ai} & AI scoring and matching engine \\
 \hline
 \end{tabular}
-\caption{Titre du tableau (exemple)}
+\caption{Backend package structure}
 \end{table}
 
-% ========================
-\section{SECTION 1.5 — Exemple de graphique}
-\begin{figure}[H]
+\subsection{Security Architecture}
+Authentication in SIPMS is stateless and JWT-based. The security flow operates as follows:
+
+\begin{enumerate}
+    \item The client sends credentials (email + password) to \texttt{POST /api/auth/login}.
+    \item Spring Security validates credentials via \texttt{UserDetailsService}.
+    \item On success, a signed JWT token is generated and returned to the client.
+    \item For subsequent requests, the client includes the token in the \texttt{Authorization: Bearer} header.
+    \item The \texttt{JwtAuthenticationFilter} intercepts every request, validates the token, and populates the \texttt{SecurityContext}.
+    \item \texttt{@PreAuthorize} annotations on controller methods enforce role-based access.
+\end{enumerate}
+
+\section{CLASS DIAGRAM}
+
+\subsection{Core Entity Relationships}
+The main entities of the SIPMS domain model and their relationships are described below:
+
+\begin{table}[H]
 \centering
-\begin{tikzpicture}
-\begin{axis}[
-    width=10cm, height=6cm,
-    xlabel={Axe X},
-    ylabel={Axe Y},
-    grid=major,
-]
-\addplot coordinates {(1,1) (2,3) (3,2) (4,4)};
-\addplot coordinates {(1,2) (2,2) (3,3) (4,3)};
-\legend{Courbe 1, Courbe 2}
-\end{axis}
-\end{tikzpicture}
-\caption{Exemple de graphique avec pgfplots}
+\begin{tabular}{|p{3cm}|p{4.5cm}|p{5.5cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Entity} & \textbf{Key Attributes} & \textbf{Relationships} \\
+\hline
+\textbf{User} & id, firstName, lastName, email, passwordHash, specialty, internshipYear, status, active & ManyToMany $\rightarrow$ Role \\
+\hline
+\textbf{Role} & id, name (ROLE\_ADMIN, etc.) & ManyToMany $\leftarrow$ User \\
+\hline
+\textbf{Application} & id, intakeMethod, status, managerNotes, createdAt & ManyToOne $\rightarrow$ User (candidate, registeredBy), Supervisor \\
+\hline
+\textbf{Document} & id, fileName, filePath, fileType, fileSize, documentType & ManyToOne $\rightarrow$ Application, User \\
+\hline
+\textbf{Quiz} & id, title, specialty, duration, active & OneToMany $\rightarrow$ QuizQuestion \\
+\hline
+\textbf{QuizQuestion} & id, questionText, correctAnswer, options & ManyToOne $\rightarrow$ Quiz \\
+\hline
+\textbf{QuizAttempt} & id, score, completedAt, answers & ManyToOne $\rightarrow$ User, Quiz \\
+\hline
+\textbf{Supervisor} & id, firstName, lastName, specialty, currentInterns, active & OneToMany $\leftarrow$ Application \\
+\hline
+\textbf{Project} & id, title, description, status, company & ManyToOne $\rightarrow$ Supervisor \\
+\hline
+\textbf{Notification} & id, title, message, read, createdAt & ManyToOne $\rightarrow$ User \\
+\hline
+\end{tabular}
+\caption{Main entities and their relationships}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\includegraphics[width=14cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{Simplified class diagram --- SIPMS core entities}
 \end{figure}
 
-% ========================
-\section{SECTION 1.6 — Exemple de texte avec citation}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor.\cite{titreBIB3}
+\section{SEQUENCE DIAGRAMS}
 
-% ========================
+\subsection{Sequence: Candidate Registration with Document Upload}
+This sequence describes the complete candidate registration flow performed by the receptionist:
+
+\begin{enumerate}
+    \item Receptionist submits the registration form via the React frontend.
+    \item \texttt{POST /api/users} is called with candidate data including \texttt{internshipYear}.
+    \item \texttt{UserService.createUser()} generates a temporary password, encodes it with BCrypt, creates the user, assigns the ROLE\_CANDIDATE role, and saves to the database.
+    \item \texttt{EmailService.sendWelcomeEmail()} sends an asynchronous HTML email with credentials.
+    \item If files were selected, \texttt{POST /api/candidates/\{id\}/documents} is called with multipart form data.
+    \item \texttt{FileStorageService.storeFile()} saves each file to the local filesystem and returns a relative path.
+    \item A \texttt{Document} entity is persisted per uploaded file, linked to the candidate's physical application.
+    \item The frontend refreshes the candidates table with the new entry.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\includegraphics[width=14cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{Sequence diagram --- Candidate registration with document upload}
+\end{figure}
+
+\subsection{Sequence: Quiz Execution}
+\begin{enumerate}
+    \item Candidate navigates to the Quiz page; frontend calls \texttt{GET /api/quizzes/\{id\}}.
+    \item Backend returns quiz metadata and questions (without correct answers).
+    \item Frontend renders questions with a countdown timer.
+    \item Candidate submits answers via \texttt{POST /api/quizzes/submit}.
+    \item \texttt{QuizService.submitQuiz()} compares submitted answers against stored correct answers and calculates the score.
+    \item Candidate's \texttt{status} is updated to \texttt{quiz\_completed} or \texttt{quiz\_failed} based on the passing threshold.
+    \item Score and completion timestamp are persisted in a \texttt{QuizAttempt} record.
+\end{enumerate}
+
+\subsection{Sequence: AI-Powered Candidate Matching}
+\begin{enumerate}
+    \item Manager triggers matching via \texttt{POST /api/ai/match-candidates/\{supervisorId\}}.
+    \item \texttt{AiService} retrieves all active supervisors and accepted candidates.
+    \item Each candidate is scored against the supervisor's specialty, current intern load, and quiz scores.
+    \item Results are ranked and persisted as \texttt{AiRanking} records.
+    \item Manager views the ranked list on the AI Insights dashboard.
+\end{enumerate}
+
+\section{DATABASE SCHEMA}
+
+\subsection{Main Tables}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3cm}|p{10cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Table} & \textbf{Key Columns} \\
+\hline
+\texttt{users} & id, first\_name, last\_name, email, password\_hash, specialty, internship\_year, status, active, must\_change\_password, created\_at \\
+\hline
+\texttt{roles} & id, name \\
+\hline
+\texttt{user\_roles} & user\_id, role\_id \\
+\hline
+\texttt{applications} & id, candidate\_id, supervisor\_id, registered\_by, intake\_method, status, manager\_notes, created\_at \\
+\hline
+\texttt{documents} & id, application\_id, uploaded\_by, file\_name, file\_path, file\_type, file\_size, document\_type, created\_at \\
+\hline
+\texttt{quizzes} & id, title, specialty, duration\_minutes, active, created\_at \\
+\hline
+\texttt{quiz\_questions} & id, quiz\_id, question\_text, options (JSON), correct\_answer, points \\
+\hline
+\texttt{quiz\_attempts} & id, user\_id, quiz\_id, score, completed\_at, answers (JSON) \\
+\hline
+\texttt{supervisors} & id, first\_name, last\_name, specialty, email, current\_interns, active \\
+\hline
+\texttt{projects} & id, title, description, company, status, supervisor\_id, created\_at \\
+\hline
+\texttt{notifications} & id, user\_id, title, message, is\_read, created\_at \\
+\hline
+\texttt{ai\_rankings} & id, entity\_type, entity\_id, score, rank, created\_at \\
+\hline
+\end{tabular}
+\caption{SIPMS database table overview}
+\end{table}
+
 \section{CONCLUSION}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.\cite{titreBIB4}
+This chapter presented the complete technical design of SIPMS, covering the layered architecture, security model, entity relationships, key sequence diagrams, and database schema. These design decisions provide a solid blueprint for the implementation phase described in the next chapter.

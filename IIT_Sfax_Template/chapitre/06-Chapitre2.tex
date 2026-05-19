@@ -1,97 +1,163 @@
-\chapter{TITRE DE CHAPITRE 2}
+\chapter{REQUIREMENTS ANALYSIS AND SPECIFICATION}
 \begin{spacing}{1.2}
 \minitoc
 \thispagestyle{MyStyle}
 \end{spacing}
 \newpage
 
-% ========================
 \section{INTRODUCTION}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.\cite{titreBIB1}
+This chapter formalizes the requirements of the SIPMS platform. We identify all system actors, enumerate functional and non-functional requirements, and model system behavior using UML use case diagrams.
 
-\section{SECTION 1.2 — Exemple de paragraphe}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.
+\section{SYSTEM ACTORS}
 
-\subsection{Sous-section avec liste à puces}
-\renewcommand{\labelitemi}{\tiny$\bullet$}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{9.5cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Actor} & \textbf{Description} \\
+\hline
+Administrator & Full system control: manages all users, roles, configurations, and audit logs. \\
+\hline
+Manager & Oversees application lifecycle, assigns supervisors, and monitors AI rankings. \\
+\hline
+Receptionist & Registers candidates, uploads documents, filters by year/specialty, assigns quizzes. \\
+\hline
+Candidate & Completes profile, takes quizzes, submits applications, tracks status. \\
+\hline
+Supervisor & Views assigned interns and coordinates project progress with the manager. \\
+\hline
+\end{tabular}
+\caption{System actors and their roles}
+\end{table}
+
+\section{FUNCTIONAL REQUIREMENTS}
+
+\subsection{Authentication and Access Control}
 \begin{itemize}[leftmargin=2cm, topsep=0pt]
     \begin{spacing}{1.25}
-        \item Point générique 1
-        \item Point générique 2
-        \item Point générique 3
+        \item Users authenticate via email/password using stateless JWT tokens.
+        \item Role-Based Access Control (RBAC) restricts features based on assigned role.
+        \item New candidates must change their temporary password on first login.
+        \item Automated welcome emails with credentials are sent upon account creation.
     \end{spacing}
 \end{itemize}
 
-\subsection{Sous-section avec numérotation}
-\begin{enumerate}
-    \item Premier élément
-    \item Deuxième élément
-    \item Troisième élément
-\end{enumerate}
+\subsection{Reception and Candidate Management}
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item Receptionists register candidates with personal info (name, email, phone, CIN, specialty, internship year).
+        \item Multiple documents are uploadable per candidate: CV, cover letter, transcript, ID card.
+        \item Candidates are filterable by year and specialty in the reception panel.
+        \item A quiz is automatically assigned to each newly registered candidate.
+    \end{spacing}
+\end{itemize}
 
-% ========================
-\section{SECTION 1.3 — Exemple d’image}
-\subsection{Insertion d’une image}
-\begin{figure}[H]%
-    \centering
-    \fbox{\includegraphics[width=10cm]{images/TemplateImages/Image-Exemple.jpg}}
-    \caption{Titre de figure (exemple)}
-\end{figure}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.\cite{titreBIB2}
+\subsection{Quiz and Evaluation}
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item Admins create quizzes with multiple-choice questions and configurable time limits.
+        \item A countdown timer is displayed during the quiz; auto-submission occurs on expiry.
+        \item Scores are automatically calculated and candidate status updated accordingly.
+    \end{spacing}
+\end{itemize}
 
-\subsection{Insertion de deux images côte à côte}
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}{0.45\textwidth}
-        \includegraphics[width=\linewidth]{images/TemplateImages/Image-Exemple.jpg}
-        \caption{Image A}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.45\textwidth}
-        \includegraphics[width=\linewidth]{images/TemplateImages/Image-Exemple.jpg}
-        \caption{Image B}
-    \end{subfigure}
-    \caption{Exemple d’images côte à côte}
-\end{figure}
+\subsection{Application Lifecycle}
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item Candidates submit online applications linked to available projects.
+        \item Application statuses follow: Pending $\rightarrow$ Under Review $\rightarrow$ Accepted / Rejected.
+        \item Managers update statuses and assign supervisors to accepted applications.
+    \end{spacing}
+\end{itemize}
 
-% ========================
-\section{SECTION 1.4 — Exemple de tableau}
+\subsection{AI Module}
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item AI ranks available projects by relevance and scores candidates.
+        \item Candidate-to-supervisor matching recommends the best-fit supervisor by specialty and availability.
+        \item Rankings are persisted and viewable by managers.
+    \end{spacing}
+\end{itemize}
+
+\section{NON-FUNCTIONAL REQUIREMENTS}
+
 \begin{table}[H]
 \centering
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|p{3.5cm}|p{9.5cm}|}
 \hline
-Colonne 1 & Colonne 2 & Colonne 3 \\
+\rowcolor{gray!20}
+\textbf{Requirement} & \textbf{Description} \\
 \hline
-Valeur 1 & Valeur 2 & Valeur 3 \\
-Valeur 4 & Valeur 5 & Valeur 6 \\
+Security & JWT authentication, BCrypt password hashing, \texttt{@PreAuthorize} on all endpoints. \\
+\hline
+Performance & API responses under 2 seconds; lazy-loading on the frontend. \\
+\hline
+Usability & Intuitive, responsive, role-differentiated dashboards requiring no technical expertise. \\
+\hline
+Reliability & Non-blocking email and file upload operations; fault-tolerant error handling. \\
+\hline
+Maintainability & Layered architecture: Controller $\rightarrow$ Service $\rightarrow$ Repository; reusable components. \\
+\hline
+Scalability & Architecture supports adding new modules and roles without breaking existing features. \\
 \hline
 \end{tabular}
-\caption{Titre du tableau (exemple)}
+\caption{Non-functional requirements of SIPMS}
 \end{table}
 
-% ========================
-\section{SECTION 1.5 — Exemple de graphique}
+\section{USE CASE MODELING}
+
 \begin{figure}[H]
-\centering
-\begin{tikzpicture}
-\begin{axis}[
-    width=10cm, height=6cm,
-    xlabel={Axe X},
-    ylabel={Axe Y},
-    grid=major,
-]
-\addplot coordinates {(1,1) (2,3) (3,2) (4,4)};
-\addplot coordinates {(1,2) (2,2) (3,3) (4,3)};
-\legend{Courbe 1, Courbe 2}
-\end{axis}
-\end{tikzpicture}
-\caption{Exemple de graphique avec pgfplots}
+    \centering
+    \fbox{\includegraphics[width=14cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{Global use case diagram --- SIPMS platform}
 \end{figure}
 
-% ========================
-\section{SECTION 1.6 — Exemple de texte avec citation}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor.\cite{titreBIB3}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Field} & \textbf{Description} \\
+\hline
+Use Case & Register a New Candidate \\
+\hline
+Actor & Receptionist \\
+\hline
+Precondition & Receptionist is authenticated with RECEPTIONIST role \\
+\hline
+Main Scenario & 1. Click ``New Candidate'' \newline 2. Fill registration form \newline 3. Upload documents \newline 4. Submit \newline 5. System creates account, generates password, sends email, assigns quiz \\
+\hline
+Postcondition & Account created; email sent; quiz assigned \\
+\hline
+Exception & Duplicate email triggers error message \\
+\hline
+\end{tabular}
+\caption{Use case: Register a new candidate}
+\end{table}
 
-% ========================
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Field} & \textbf{Description} \\
+\hline
+Use Case & Take a Quiz \\
+\hline
+Actor & Candidate \\
+\hline
+Precondition & Candidate is authenticated and a quiz has been assigned \\
+\hline
+Main Scenario & 1. Navigate to Quiz page \newline 2. Start quiz with timer \newline 3. Answer MCQ questions \newline 4. Submit before timer expires \newline 5. Score is calculated and status updated \\
+\hline
+Postcondition & Score recorded; status updated \\
+\hline
+Exception & Timer expiry triggers automatic submission \\
+\hline
+\end{tabular}
+\caption{Use case: Take a quiz}
+\end{table}
+
 \section{CONCLUSION}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.\cite{titreBIB4}
+This chapter provided a complete specification of the SIPMS platform requirements. The actor identification, structured requirements, and use case models serve as the design foundation addressed in the next chapter.

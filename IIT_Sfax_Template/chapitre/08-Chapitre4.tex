@@ -1,97 +1,253 @@
-\chapter{TITRE DE CHAPITRE 4}
+\chapter{IMPLEMENTATION}
 \begin{spacing}{1.2}
 \minitoc
 \thispagestyle{MyStyle}
 \end{spacing}
 \newpage
 
-% ========================
 \section{INTRODUCTION}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.\cite{titreBIB1}
+This chapter presents the practical realization of the SIPMS platform. We first describe the development environment and tools used, then walk through the four Scrum sprints executed during the project, presenting the key user interfaces delivered in each sprint.
 
-\section{SECTION 1.2 — Exemple de paragraphe}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.
+\section{DEVELOPMENT ENVIRONMENT}
 
-\subsection{Sous-section avec liste à puces}
-\renewcommand{\labelitemi}{\tiny$\bullet$}
+\subsection{Hardware Environment}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Component} & \textbf{Specification} \\
+\hline
+Processor & Intel Core i5 / i7, 2.4 GHz or higher \\
+\hline
+RAM & 16 GB \\
+\hline
+Storage & 512 GB SSD \\
+\hline
+Operating System & Windows 10 / 11 (64-bit) \\
+\hline
+\end{tabular}
+\caption{Hardware development environment}
+\end{table}
+
+\subsection{Software Environment}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{4cm}|p{5cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Tool / Technology} & \textbf{Version} & \textbf{Purpose} \\
+\hline
+Java (JDK) & 17 LTS & Backend runtime \\
+\hline
+Spring Boot & 3.2.x & Backend framework \\
+\hline
+Maven & 3.9.x & Build and dependency management \\
+\hline
+MySQL & 8.0 & Relational database \\
+\hline
+Node.js & 20 LTS & Frontend runtime \\
+\hline
+React (Vite) & 18 / 5.x & Frontend framework \\
+\hline
+VS Code & Latest & Frontend IDE \\
+\hline
+IntelliJ IDEA & 2023.x & Backend IDE \\
+\hline
+Postman & Latest & API testing \\
+\hline
+Git / GitHub & - & Version control \\
+\hline
+MySQL Workbench & 8.0 & Database management \\
+\hline
+\end{tabular}
+\caption{Software development environment}
+\end{table}
+
+\section{SPRINT 1 — AUTHENTICATION AND USER MANAGEMENT}
+
+\subsection{Sprint Backlog}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{1cm}|p{8cm}|p{3cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{\#} & \textbf{User Story} & \textbf{Status} \\
+\hline
+1 & As a user, I want to log in with my email and password and receive a JWT token & Done \\
+\hline
+2 & As a user, I want to be redirected to my role-specific dashboard after login & Done \\
+\hline
+3 & As a new user, I want to be prompted to change my temporary password on first login & Done \\
+\hline
+4 & As an admin, I want to create, view, edit, and delete user accounts & Done \\
+\hline
+5 & As a system, I must enforce RBAC so that each route is accessible only to authorized roles & Done \\
+\hline
+\end{tabular}
+\caption{Sprint 1 backlog}
+\end{table}
+
+\subsection{Key Technical Implementations}
 \begin{itemize}[leftmargin=2cm, topsep=0pt]
     \begin{spacing}{1.25}
-        \item Point générique 1
-        \item Point générique 2
-        \item Point générique 3
+        \item \textbf{JwtTokenProvider}: Generates and validates tokens using a configurable secret key and expiry duration.
+        \item \textbf{JwtAuthenticationFilter}: Intercepts all requests, extracts and validates the Bearer token, and populates the Spring Security context.
+        \item \textbf{SecurityConfig}: Defines the HTTP security rules, CORS configuration, and public endpoints (\texttt{/api/auth/**}).
+        \item \textbf{RoleBasedRedirect}: A React component that reads the user's role from the JWT and redirects to the appropriate dashboard path.
+        \item \textbf{ProtectedRoute}: Guards frontend routes by checking authentication state and role membership.
     \end{spacing}
 \end{itemize}
 
-\subsection{Sous-section avec numérotation}
-\begin{enumerate}
-    \item Premier élément
-    \item Deuxième élément
-    \item Troisième élément
-\end{enumerate}
+\subsection{Delivered Interfaces}
 
-% ========================
-\section{SECTION 1.3 — Exemple d’image}
-\subsection{Insertion d’une image}
-\begin{figure}[H]%
-    \centering
-    \fbox{\includegraphics[width=10cm]{images/TemplateImages/Image-Exemple.jpg}}
-    \caption{Titre de figure (exemple)}
-\end{figure}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.\cite{titreBIB2}
-
-\subsection{Insertion de deux images côte à côte}
 \begin{figure}[H]
     \centering
-    \begin{subfigure}{0.45\textwidth}
-        \includegraphics[width=\linewidth]{images/TemplateImages/Image-Exemple.jpg}
-        \caption{Image A}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.45\textwidth}
-        \includegraphics[width=\linewidth]{images/TemplateImages/Image-Exemple.jpg}
-        \caption{Image B}
-    \end{subfigure}
-    \caption{Exemple d’images côte à côte}
+    \fbox{\includegraphics[width=13cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{Login page --- SIPMS CLINISYS branding}
 \end{figure}
 
-% ========================
-\section{SECTION 1.4 — Exemple de tableau}
+\begin{figure}[H]
+    \centering
+    \fbox{\includegraphics[width=13cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{Administrator dashboard --- Users management panel}
+\end{figure}
+
+\section{SPRINT 2 — RECEPTION MODULE}
+
+\subsection{Sprint Backlog}
 \begin{table}[H]
 \centering
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|p{1cm}|p{8cm}|p{3cm}|}
 \hline
-Colonne 1 & Colonne 2 & Colonne 3 \\
+\rowcolor{gray!20}
+\textbf{\#} & \textbf{User Story} & \textbf{Status} \\
 \hline
-Valeur 1 & Valeur 2 & Valeur 3 \\
-Valeur 4 & Valeur 5 & Valeur 6 \\
+6 & As a receptionist, I want to register a new candidate with their personal information & Done \\
+\hline
+7 & As a receptionist, I want to upload supporting documents (CV, cover letter, transcript, ID) for each candidate & Done \\
+\hline
+8 & As a receptionist, I want to filter the candidates list by internship year & Done \\
+\hline
+9 & As a receptionist, I want to filter candidates by specialty & Done \\
+\hline
+10 & As a system, I want to automatically send a welcome email with temporary credentials upon candidate creation & Done \\
+\hline
+11 & As a system, I want to automatically assign an available quiz to each newly registered candidate & Done \\
 \hline
 \end{tabular}
-\caption{Titre du tableau (exemple)}
+\caption{Sprint 2 backlog}
 \end{table}
 
-% ========================
-\section{SECTION 1.5 — Exemple de graphique}
+\subsection{Key Technical Implementations}
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item \textbf{internshipYear field}: Added to the \texttt{User} entity and \texttt{UserDto}, persisted in the \texttt{users} table as an integer column.
+        \item \textbf{Document upload endpoint}: \texttt{POST /api/candidates/\{userId\}/documents} accepts multipart files (cv, coverLetter, transcript, idCard, other), stores them via \texttt{FileStorageService}, and persists \texttt{Document} entities linked to the candidate's physical application.
+        \item \textbf{Email automation}: \texttt{EmailService.sendWelcomeEmail()} sends an HTML-formatted email with login credentials from the configured Gmail SMTP account (\texttt{ayadi9732@gmail.com}) using a 16-character App Password.
+        \item \textbf{Year filter}: The frontend \texttt{ReceptionPanel.jsx} filters the candidate list using both \texttt{internshipYear} (when set) and the creation year as a fallback.
+    \end{spacing}
+\end{itemize}
+
+\subsection{Delivered Interfaces}
+
 \begin{figure}[H]
-\centering
-\begin{tikzpicture}
-\begin{axis}[
-    width=10cm, height=6cm,
-    xlabel={Axe X},
-    ylabel={Axe Y},
-    grid=major,
-]
-\addplot coordinates {(1,1) (2,3) (3,2) (4,4)};
-\addplot coordinates {(1,2) (2,2) (3,3) (4,3)};
-\legend{Courbe 1, Courbe 2}
-\end{axis}
-\end{tikzpicture}
-\caption{Exemple de graphique avec pgfplots}
+    \centering
+    \fbox{\includegraphics[width=13cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{Reception Panel --- Candidate list with year filter}
 \end{figure}
 
-% ========================
-\section{SECTION 1.6 — Exemple de texte avec citation}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor.\cite{titreBIB3}
+\begin{figure}[H]
+    \centering
+    \fbox{\includegraphics[width=13cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{New Candidate registration modal with document upload}
+\end{figure}
 
-% ========================
+\section{SPRINT 3 — QUIZ MODULE}
+
+\subsection{Sprint Backlog}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{1cm}|p{8cm}|p{3cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{\#} & \textbf{User Story} & \textbf{Status} \\
+\hline
+12 & As an admin, I want to create quizzes with multiple-choice questions and a time limit & Done \\
+\hline
+13 & As an admin, I want to assign a quiz to a specific candidate & Done \\
+\hline
+14 & As a candidate, I want to take my assigned quiz with a visible countdown timer & Done \\
+\hline
+15 & As a candidate, I want to see my quiz score immediately after submission & Done \\
+\hline
+16 & As a system, I want to auto-submit the quiz when the time limit is reached & Done \\
+\hline
+\end{tabular}
+\caption{Sprint 3 backlog}
+\end{table}
+
+\subsection{Key Technical Implementations}
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item \textbf{QuizTimeLimitInterceptor}: A Spring MVC interceptor that blocks quiz submission requests that arrive after the allotted duration.
+        \item \textbf{QuizInterface.jsx}: A React component rendering question cards with a real-time countdown timer using \texttt{useEffect} and \texttt{setInterval}.
+        \item \textbf{Auto-submit}: When the timer reaches zero, the component automatically calls the submit handler, preventing further answer changes.
+        \item \textbf{Score calculation}: \texttt{QuizService.submitQuiz()} iterates over submitted answers, compares them to stored correct answers, and calculates a percentage score.
+    \end{spacing}
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\includegraphics[width=13cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{Quiz interface --- Question view with countdown timer}
+\end{figure}
+
+\section{SPRINT 4 — AI MODULE AND PROJECT ASSIGNMENT}
+
+\subsection{Sprint Backlog}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{1cm}|p{8cm}|p{3cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{\#} & \textbf{User Story} & \textbf{Status} \\
+\hline
+17 & As a manager, I want the system to rank available projects by relevance & Done \\
+\hline
+18 & As a manager, I want the system to suggest the best-fit supervisor for each candidate & Done \\
+\hline
+19 & As a manager, I want to view AI-generated rankings on a dedicated dashboard & Done \\
+\hline
+20 & As a manager, I want to assign a supervisor to an accepted application & Done \\
+\hline
+21 & As a manager, I want to conduct interviews and record results & Done \\
+\hline
+\end{tabular}
+\caption{Sprint 4 backlog}
+\end{table}
+
+\subsection{Key Technical Implementations}
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item \textbf{AiService.rankProjects()}: Scores each available project based on supervisor capacity, project complexity, and application volume. Results are stored as \texttt{AiRanking} records.
+        \item \textbf{AiService.matchCandidates()}: For a given supervisor, retrieves all accepted candidates and scores them by specialty alignment, quiz score, and application seniority.
+        \item \textbf{AI Insights Dashboard}: A dedicated React page displaying sortable tables of project rankings and candidate matchings fetched from \texttt{GET /api/ai/rankings/**}.
+        \item \textbf{Supervisor Assignment}: \texttt{PATCH /api/applications/\{id\}/assign-supervisor} links an accepted application to a chosen supervisor and increments their \texttt{currentInterns} counter.
+    \end{spacing}
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\includegraphics[width=13cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{AI Insights page --- Project rankings and candidate matching}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\includegraphics[width=13cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{Applications management --- Supervisor assignment workflow}
+\end{figure}
+
 \section{CONCLUSION}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.\cite{titreBIB4}
+This chapter presented the complete implementation of the SIPMS platform across four Scrum sprints. Each sprint delivered functional, tested increments that progressively built the full-featured system. The combination of a robust Spring Boot backend, a reactive React frontend, automated email workflows, and an AI-powered matching engine produces a platform that successfully addresses all the requirements identified in Chapter 2.
