@@ -1,0 +1,97 @@
+\chapter{TITRE DE CHAPITRE 3}
+\begin{spacing}{1.2}
+\minitoc
+\thispagestyle{MyStyle}
+\end{spacing}
+\newpage
+
+% ========================
+\section{INTRODUCTION}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.\cite{titreBIB1}
+
+\section{SECTION 1.2 — Exemple de paragraphe}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.
+
+\subsection{Sous-section avec liste à puces}
+\renewcommand{\labelitemi}{\tiny$\bullet$}
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item Point générique 1
+        \item Point générique 2
+        \item Point générique 3
+    \end{spacing}
+\end{itemize}
+
+\subsection{Sous-section avec numérotation}
+\begin{enumerate}
+    \item Premier élément
+    \item Deuxième élément
+    \item Troisième élément
+\end{enumerate}
+
+% ========================
+\section{SECTION 1.3 — Exemple d’image}
+\subsection{Insertion d’une image}
+\begin{figure}[H]%
+    \centering
+    \fbox{\includegraphics[width=10cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{Titre de figure (exemple)}
+\end{figure}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.\cite{titreBIB2}
+
+\subsection{Insertion de deux images côte à côte}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{images/TemplateImages/Image-Exemple.jpg}
+        \caption{Image A}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{images/TemplateImages/Image-Exemple.jpg}
+        \caption{Image B}
+    \end{subfigure}
+    \caption{Exemple d’images côte à côte}
+\end{figure}
+
+% ========================
+\section{SECTION 1.4 — Exemple de tableau}
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Colonne 1 & Colonne 2 & Colonne 3 \\
+\hline
+Valeur 1 & Valeur 2 & Valeur 3 \\
+Valeur 4 & Valeur 5 & Valeur 6 \\
+\hline
+\end{tabular}
+\caption{Titre du tableau (exemple)}
+\end{table}
+
+% ========================
+\section{SECTION 1.5 — Exemple de graphique}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=10cm, height=6cm,
+    xlabel={Axe X},
+    ylabel={Axe Y},
+    grid=major,
+]
+\addplot coordinates {(1,1) (2,3) (3,2) (4,4)};
+\addplot coordinates {(1,2) (2,2) (3,3) (4,3)};
+\legend{Courbe 1, Courbe 2}
+\end{axis}
+\end{tikzpicture}
+\caption{Exemple de graphique avec pgfplots}
+\end{figure}
+
+% ========================
+\section{SECTION 1.6 — Exemple de texte avec citation}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor.\cite{titreBIB3}
+
+% ========================
+\section{CONCLUSION}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.\cite{titreBIB4}

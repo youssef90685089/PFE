@@ -1,0 +1,46 @@
+# ── Java / Maven ──────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.mvn/wrapper/maven-wrapper.jar
+
+# ── Spring Boot ───────────────────────────────────────────
+backend/uploads/
+
+# ── Node / Vite ───────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+*.local
+
+# ── Environment / Secrets ─────────────────────────────────
+.env
+.env.*
+!.env.example
+application-prod.properties
+
+# ── IDE ───────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── OS ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Misc ──────────────────────────────────────────────────
+qc
+query
+lint-output.txt
+lint-fix-output.txt
+fix_hashes.py
+test-login.js

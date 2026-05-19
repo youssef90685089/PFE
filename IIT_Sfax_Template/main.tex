@@ -1,0 +1,68 @@
+% @Author: Taieb Jemal
+% @Date:   2025-08-12
+
+% Collaborators: Chedy Chaaben, Youssef Kammoun, Baha Eddin Babay
+% Original Template: Mr Nizar TENZEKHTI
+
+\documentclass[12pt, oneside, a4paper]{Configuration/IIT-report}
+
+\graphicspath{{images/}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Include useful commands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{Configuration/Commands}
+
+\hypersetup{
+  pdftitle={\reportTitle~-~\reportSubject},%
+  pdfauthor={\reportAuthor},%
+  pdfsubject={\reportSubject},%
+  pdfkeywords={report} {internship} {pfe} {IIT-Sfax}
+}
+\dominitoc
+\begin{document}
+    \input{chapitre/00-PageDeGarde}
+    
+    % page number & space
+    \pagenumbering{arabic}% 1 2 3 4 5
+    \doublespacing{}
+    
+    \input{chapitre/01-Dedication}
+
+    \input{chapitre/02-Remerciement}
+
+    % TABLE DES MATIÈRES & LISTE DES FIGURES
+    \addtocontents{toc}{\protect\thispagestyle{MyStyle}}
+        \renewcommand*\contentsname{TABLE DES MATIÈRES}
+        \begin{spacing}{1}
+            \tableofcontents
+        \end{spacing}
+        \addtocontents{lof}{\protect\thispagestyle{MyStyle}}
+        \renewcommand{\listfigurename}{LISTE DES FIGURES}
+        \begin{spacing}{1}
+            \listoffigures
+        \end{spacing}
+        \addcontentsline{toc}{chapter}{\listfigurename}
+        \adjustmtc
+
+    \input{chapitre/03-ListeDesAbr}
+    
+    \input{chapitre/04-IntroductionGeneral}
+    
+    \input{chapitre/05-Chapitre1}
+
+    \input{chapitre/06-Chapitre2}
+
+    \input{chapitre/07-Chapitre3}
+    
+    \input{chapitre/08-Chapitre4}
+    
+    \input{chapitre/09-ConclusionGenerale}
+
+    \input{chapitre/10-Bibliographie}
+
+    \input{chapitre/11-Annexes}
+    
+    \input{chapitre/12-DosDuRapport}
+
+\end{document}

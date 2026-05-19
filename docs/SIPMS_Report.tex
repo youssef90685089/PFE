@@ -1,0 +1,624 @@
+% SIPMS - Smart Internship & Project Management System
+% Final Project Report - LaTeX Format
+% Author: Ayadi Youssef
+% Supervisor: Rahma Bouaziz
+% Company: Clinisys
+% Date: May 2026
+
+\documentclass[12pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{cite}
+
+% Page geometry
+\geometry{top=2.5cm,bottom=2.5cm,left=3cm,right=2.5cm}
+
+% Colors for code
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolor}{rgb}{0.95,0.95,0.92}
+
+% Code listing style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolor},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\small,
+    frame=single,
+    breaklines=true,
+    showstringspaces=false
+}
+\lstset{style=mystyle}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+
+% Title formatting
+\titleformat{\chapter}[hang]{\LARGE\bfseries}{\thechapter}{20pt}{\LARGE\bfseries}
+\titleformat{\section}[hang]{\Large\bfseries}{\thesection}{15pt}{\Large\bfseries}
+\titleformat{\subsection}[hang]{\large\bfseries}{\thesubsection}{10pt}{\large\bfseries}
+
+%spacing
+\setspace{1.5}
+
+\begin{document}
+
+% ============================================================================
+% COVER PAGE
+% ============================================================================
+\begin{titlepage}
+\begin{center}
+\vspace*{2cm}
+\textbf{\Large INSTITUT INTERNATIONAL DE TECHNOLOGIE}\\[0.5cm]
+\textbf{\large IIT - Sfax}\\[2cm]
+
+\vspace{1cm}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.3\textwidth]{example-image}
+\end{figure}
+\vspace{1cm}
+
+\textbf{\huge SMART INTERNSHIP \& PROJECT MANAGEMENT SYSTEM}\\[0.5cm]
+\textbf{\large (SIPMS)}\\[2cm]
+
+\textbf{\Large FINAL PROJECT REPORT}\\[1cm]
+
+\begin{minipage}{0.8\linewidth}
+\begin{center}
+\textbf{Field:} Computer Engineering\\
+\textbf{Academic Year:} 2025-2026
+\end{center}
+\end{minipage}
+
+\vspace{2cm}
+
+\begin{tabular}{ll}
+\textbf{Student:} & Ayadi Youssef \\
+\textbf{Supervisor:} & Rahma Bouaziz \\
+\textbf{Company:} & Clinisys \\
+\textbf{Date:} & May 2026
+\end{tabular}
+
+\end{center}
+\end{titlepage}
+
+% ============================================================================
+% ACKNOWLEDGEMENTS
+% ============================================================================
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+
+Firstly, I would like to express my sincere gratitude to my supervisor, \textbf{Ms. Rahma Bouaziz}, for her invaluable guidance, continuous support, and constructive feedback throughout this project. Her expertise and encouragement have been instrumental in the successful completion of this work.
+
+I am also grateful to \textbf{Clinisys} for providing me with the opportunity to work on this real-world project and for the valuable industrial experience gained during my internship.
+
+My heartfelt thanks go to my family and friends for their unconditional support and motivation throughout my academic journey.
+
+Finally, I would like to thank all the professors and staff of the Computer Engineering department at IIT for their guidance and knowledge.
+
+\vspace{2cm}
+\textbf{May 2026}
+
+% ============================================================================
+% ABSTRACT
+% ============================================================================
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+This report presents the development of the Smart Internship \& Project Management System (SIPMS), a full-stack web application designed to digitize and automate the internship and academic project management process. The system integrates modern web technologies including React.js for the frontend, Spring Boot for the backend, and MySQL for data persistence. Key features include role-based authentication, automated quiz evaluation, AI-powered project ranking, and intelligent candidate-supervisor matching. The system follows a microservices architecture with JWT-based security and comprehensive audit logging.
+
+\textbf{Keywords:} Internship Management, Web Application, React.js, Spring Boot, AI Integration, Role-Based Access Control, MySQL
+
+% ============================================================================
+% TABLE OF CONTENTS
+% ============================================================================
+\tableofcontents
+\addcontentsline{toc}{chapter}{Table of Contents}
+
+\listoffigures
+\addcontentsline{toc}{chapter}{List of Figures}
+
+\listoftables
+\addcontentsline{toc}{chapter}{List of Tables}
+
+% ============================================================================
+% CHAPTER 1: INTRODUCTION
+% ============================================================================
+\chapter{GENERAL INTRODUCTION}
+
+\section{Project Context}
+In the current economic context characterized by accelerated digital transformation and increasing competition in the job market, the effective management of internship recruitment processes and academic projects has become a major challenge for organizations. Traditional paper-based manual management methods present numerous limitations: document loss, long processing times, lack of traceability, and inefficiency in evaluating candidate competencies.
+
+The \textbf{Smart Internship \& Project Management System (SIPMS)} is a full-stack web application designed to digitize and automate the entire internship and academic project management process. This system integrates advanced artificial intelligence functionalities for analyzing and ranking projects submitted by candidates, as well as for intelligent matching between candidates and available supervisors.
+
+\section{Project Objectives}
+The main objective of this project is to develop a professional web application that allows:
+
+\begin{enumerate}
+    \item \textbf{Digitizing the Application Process}: Enabling candidates to submit their applications online, including their CV and project ideas
+    \item \textbf{Automating Evaluation}: Implementing an automated technical quiz system with instant correction to evaluate candidates' technical skills
+    \item \textbf{AI Integration}: Using artificial intelligence algorithms to analyze and rank submitted projects, as well as to suggest the most suitable supervisor for each project
+    \item \textbf{Role-Based Access Control (RBAC)}: Implementing a role-based access system allowing different user types (Admin, Manager, Receptionist, Candidate) to access appropriate functionalities
+    \item \textbf{Automated Notifications}: Triggering automatic in-app and email notifications at each key stage of the selection process
+\end{enumerate}
+
+\section{Project Scope}
+The SIPMS system covers the following functionalities:
+
+\begin{itemize}
+    \item \textbf{Authentication Module}: Secure JWT-based connection with role management
+    \item \textbf{Application Management}: Online submission and physical registration
+    \item \textbf{Evaluation Module}: Timed technical quiz with automatic correction
+    \item \textbf{AI Module}: Project ranking and candidate-supervisor matching
+    \item \textbf{Decision Module}: Validation workflow with acceptance/rejection
+    \item \textbf{Notification Module}: In-app and email notifications
+\end{itemize}
+
+\section{Problem Statement}
+Academic organizations and companies face several challenges in internship management:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Identified Problem} & \textbf{SIPMS Solution} \\ \hline
+Manual management of physical files & Complete digitization \\ \hline
+Long processing times & Process automation \\ \hline
+Lack of traceability & Complete audit logs \\ \hline
+Subjective evaluation & Standardized quiz + AI \\ \hline
+Supervisor/project matching difficulty & Matching algorithm \\ \hline
+Inefficient communication & Automated notifications \\ \hline
+\end{tabular}
+\caption{Problem-Solution Mapping}
+\end{table}
+
+% ============================================================================
+% CHAPTER 2: TECHNICAL ARCHITECTURE
+% ============================================================================
+\chapter{TECHNICAL ARCHITECTURE}
+
+\section{System Architecture Overview}
+The SIPMS application follows a three-tier architecture:
+
+\begin{itemize}
+    \item \textbf{Presentation Layer}: React.js with Tailwind CSS
+    \item \textbf{Application Layer}: Spring Boot REST API
+    \item \textbf{Data Layer}: MySQL Database
+\end{itemize}
+
+\section{Technology Stack}
+
+\subsection{Frontend Technologies}
+\begin{itemize}
+    \item \textbf{React.js 18}: UI Framework
+    \item \textbf{Tailwind CSS}: Styling
+    \item \textbf{React Router v6}: Navigation
+    \item \textbf{Axios}: HTTP Client
+    \item \textbf{Lucide React}: Icons
+    \item \textbf{Vite}: Build Tool
+\end{itemize}
+
+\subsection{Backend Technologies}
+\begin{itemize}
+    \item \textbf{Spring Boot 3.x}: Framework
+    \item \textbf{Spring Security}: Authentication
+    \item \textbf{JWT}: Token-based security
+    \item \textbf{JPA/Hibernate}: ORM
+    \item \textbf{MySQL}: Database
+    \item \textbf{Java Mail}: Email notifications
+\end{itemize}
+
+\section{Architecture Diagram}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{architecture_diagram}
+\caption{System Architecture Diagram}
+\end{figure}
+
+\section{Database Schema}
+The database consists of the following main entities:
+
+\begin{itemize}
+    \item \textbf{users}: Authentication and user information
+    \item \textbf{roles}: User roles (ADMIN, MANAGER, RECEPTIONIST, CANDIDATE)
+    \item \textbf{candidates}: Candidate profile information
+    \item \textbf{supervisors}: Supervisor details and capacity
+    \item \textbf{projects}: Project ideas submitted by candidates
+    \item \textbf{applications}: Main application lifecycle entity
+    \item \textbf{quizzes}: Assessment quizzes
+    \item \textbf{quiz\_questions}: Quiz questions
+    \item \textbf{quiz\_attempts}: Candidate quiz attempts
+    \item \textbf{notifications}: System notifications
+    \item \textbf{audit\_log}: Security audit trail
+\end{itemize}
+
+% ============================================================================
+% CHAPTER 3: ANALYSIS AND DESIGN
+% ============================================================================
+\chapter{ANALYSIS AND DESIGN}
+
+\section{Use Case Diagram}
+\begin{figure}[H]
+\centering
+%\includegraphics[width=0.9\textwidth]{use_case_diagram}
+\caption{Use Case Diagram}
+\end{figure}
+
+\section{Actors}
+\begin{enumerate}
+    \item \textbf{Admin}: System administration, user management
+    \item \textbf{Manager}: Review applications, make decisions, assign supervisors
+    \item \textbf{Receptionist}: Register physical dossiers, manage candidates
+    \item \textbf{Candidate}: Submit applications, take quizzes, view results
+\end{enumerate}
+
+\section{Class Diagram}
+The main entities in the system are:
+
+\begin{figure}[H]
+%\includegraphics[width=0.9\textwidth]{class_diagram}
+\caption{Class Diagram - Main Entities}
+\end{figure}
+
+\section{Sequence Diagrams}
+
+\subsection{Authentication Flow}
+\begin{figure}[H]
+%\includegraphics[width=0.9\textwidth]{sequence_auth}
+\caption{Sequence Diagram - Authentication}
+\end{figure}
+
+\subsection{Quiz Submission Flow}
+\begin{figure}[H]
+%\includegraphics[width=0.9\textwidth]{sequence_quiz}
+\caption{Sequence Diagram - Quiz Submission}
+\end{figure}
+
+% ============================================================================
+% CHAPTER 4: IMPLEMENTATION
+% ============================================================================
+\chapter{IMPLEMENTATION}
+
+\section{Backend Implementation}
+
+\subsection{User Entity}
+\begin{lstlisting}[language=Java, caption=User Entity]
+@Entity
+@Table(name = "users")
+public class User {
+    @Id @GeneratedValue
+    private Long id;
+    
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String passwordHash;
+    private boolean active;
+    private boolean mustChangePassword;
+    
+    @ManyToMany
+    @JoinTable(name = "user_roles")
+    private Set<Role> roles;
+    
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}
+\end{lstlisting}
+
+\subsection{Authentication Service}
+\begin{lstlisting}[language=Java, caption=Authentication Service]
+@Service
+public class AuthService {
+    public AuthResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new BusinessException("Invalid credentials"));
+        
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            throw new BusinessException("Invalid credentials");
+        }
+        
+        String token = jwtTokenProvider.generateToken(user);
+        return new AuthResponse(token, user);
+    }
+}
+\end{lstlisting}
+
+\section{Frontend Implementation}
+
+\subsection{Auth Context}
+\begin{lstlisting}[language=JavaScript, caption=Auth Context]
+const AuthContext = createContext(null);
+
+function authReducer(state, action) {
+    switch (action.type) {
+        case 'LOGIN':
+            return {
+                ...state,
+                user: action.payload.user,
+                token: action.payload.token,
+                isAuthenticated: true,
+                isLoading: false,
+            };
+        case 'LOGOUT':
+            return { ...initialState, isLoading: false };
+        default:
+            return state;
+    }
+}
+
+export function AuthProvider({ children }) {
+    const [state, dispatch] = useReducer(authReducer, initialState);
+    
+    const logout = () => {
+        localStorage.removeItem('sipms_token');
+        localStorage.removeItem('sipms_user');
+        sessionStorage.clear();
+        dispatch({ type: 'LOGOUT' });
+    };
+    
+    // ... implementation
+}
+\end{lstlisting}
+
+\subsection{Login Page with Role-Based Redirect}
+\begin{lstlisting}[language=JavaScript, caption=Login Page]
+export default function LoginPage() {
+    const { login, isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+    const loginSuccessRef = useRef(false);
+
+    useEffect(() => {
+        if (isAuthenticated && loginSuccessRef.current) {
+            loginSuccessRef.current = false;
+            const user = JSON.parse(localStorage.getItem('sipms_user'));
+            
+            if (user.mustChangePassword) {
+                navigate('/reset-password');
+            } else if (user.roles.includes('ROLE_RECEPTIONIST')) {
+                navigate('/reception-panel');
+            } else if (user.roles.includes('ROLE_CANDIDATE')) {
+                navigate('/quiz-interface');
+            } else {
+                navigate('/dashboard');
+            }
+        }
+    }, [isAuthenticated]);
+    
+    // ... rest of implementation
+}
+\end{lstlisting}
+
+% ============================================================================
+% CHAPTER 5: SECURITY
+% ============================================================================
+\chapter{SECURITY}
+
+\section{Authentication}
+The system uses JWT (JSON Web Tokens) for secure authentication:
+
+\begin{itemize}
+    \item Token generation upon successful login
+    \item Token validation on each protected request
+    \item Token expiration after configurable timeout
+    \item Secure password hashing using BCrypt
+\end{itemize}
+
+\section{Authorization}
+Role-Based Access Control (RBAC) ensures:
+
+\begin{itemize}
+    \item Admin: Full system access
+    \item Manager: Application review and decisions
+    \item Receptionist: Physical registration and candidate management
+    \item Candidate: Quiz and application submission only
+\end{itemize}
+
+\section{Audit Logging}
+All critical actions are logged:
+
+\begin{lstlisting}[language=Java, caption=Audit Service]
+@Service
+public class SecurityAuditService {
+    public void logAction(Long userId, String action, String entityType, 
+                          Long entityId, String details) {
+        AuditLog log = new AuditLog();
+        log.setUserId(userId);
+        log.setAction(action);
+        log.setEntityType(entityType);
+        log.setEntityId(entityId);
+        log.setDetails(details);
+        log.setCreatedAt(LocalDateTime.now());
+        auditLogRepository.save(log);
+    }
+}
+\end{lstlisting}
+
+% ============================================================================
+% CHAPTER 6: FEATURES
+% ============================================================================
+\chapter{FEATURES}
+
+\section{User Management}
+\begin{itemize}
+    \item Create new users with auto-generated passwords
+    \item Password reset on first login
+    \item Role-based access control
+    \item User activation/deactivation
+\end{itemize}
+
+\section{Supervisor Management}
+\begin{itemize}
+    \item Add, modify, delete supervisors
+    \item Track capacity (max interns)
+    \item Expertise and department management
+\end{itemize}
+
+\section{Application Processing}
+\begin{itemize}
+    \item Online application submission
+    \item Physical registration by receptionist
+    \item Status management (Pending, Accepted, Rejected)
+    \item Supervisor assignment
+\end{itemize}
+
+\section{Quiz System}
+\begin{itemize}
+    \item Timed quizzes (48-hour limit)
+    \item Specialty-based quizzes (Web, Security, Power BI)
+    \item Auto-correction and scoring
+    \item Results display
+\end{itemize}
+
+\section{AI Integration}
+\begin{itemize}
+    \item Project ranking based on relevance
+    \item Candidate-supervisor matching
+    \item Confidence scores for decision support
+\end{itemize}
+
+% ============================================================================
+% CHAPTER 7: CONCLUSION
+% ============================================================================
+\chapter{CONCLUSION}
+
+\section{Summary}
+The Smart Internship \& Project Management System (SIPMS) has been successfully developed as a full-stack web application. The system addresses the challenges of traditional internship management by providing a digital, automated, and intelligent solution.
+
+The key achievements of this project include:
+
+\begin{enumerate}
+    \item Complete digitization of the application process
+    \item Automated quiz evaluation system with instant results
+    \item AI-powered project ranking and supervisor matching
+    \item Secure role-based authentication and authorization
+    \item Comprehensive audit logging for traceability
+    \item User-friendly interface with Tailwind CSS
+\end{enumerate}
+
+\section{Future Enhancements}
+Potential future improvements include:
+
+\begin{itemize}
+    \item Mobile application development
+    \item Advanced AI models for better matching
+    \item Integration with external job portals
+    \item Blockchain-based document verification
+    \item Advanced analytics and reporting dashboard
+\end{itemize}
+
+\section{Learnings}
+This project provided valuable experience in:
+
+\begin{itemize}
+    \item Full-stack web development
+    \item Spring Boot and React.js frameworks
+    \item Database design and optimization
+    \item Security best practices
+    \item Project management and documentation
+\end{itemize}
+
+% ============================================================================
+% REFERENCES
+% ============================================================================
+\chapter{REFERENCES}
+
+\begin{thebibliography}{99}
+
+bibitem{react} React Documentation. \textit{Facebook Inc.}, 2024. https://reactjs.org/
+
+bibitem{spring} Spring Boot Documentation. \textit{VMWare Inc.}, 2024. https://spring.io/projects/spring-boot
+
+bibitem{jwt} JWT Specification. \textit{Auth0 Inc.}, 2024. https://jwt.io/
+
+bibitem{tailwind} Tailwind CSS Documentation. \textit{Tailwind Labs}, 2024. https://tailwindcss.com/
+
+bibitem{mysql} MySQL Documentation. \textit{Oracle Corporation}, 2024. https://dev.mysql.com/
+
+\end{thebibliography}
+
+% ============================================================================
+% APPENDICES
+% ============================================================================
+\appendix
+
+\chapter{Appendix A: API Endpoints}
+
+\section{Authentication}
+\begin{itemize}
+    \item POST /api/auth/login
+    \item POST /api/auth/register
+    \item POST /api/auth/refresh
+\end{itemize}
+
+\section{Users}
+\begin{itemize}
+    \item GET /api/users
+    \item POST /api/users
+    \item PUT /api/users/\{id\}
+    \item DELETE /api/users/\{id\}
+\end{itemize}
+
+\section{Applications}
+\begin{itemize}
+    \item GET /api/applications
+    \item POST /api/applications
+    \item PATCH /api/applications/\{id\}/status
+\end{itemize}
+
+\section{Quiz}
+\begin{itemize}
+    \item GET /api/quiz
+    \item POST /api/quiz/submit
+    \item GET /api/quiz/results
+\end{itemize}
+
+\chapter{Appendix B: Database Schema}
+
+\begin{figure}[H]
+%\includegraphics[width=0.9\textwidth]{db_schema}
+\caption{Database Schema}
+\end{figure}
+
+\chapter{Appendix C: User Manual}
+
+\section{Admin User}
+\begin{enumerate}
+    \item Login with admin credentials
+    \item Navigate to User Management to create new users
+    \item Navigate to Supervisor Management to add supervisors
+    \item View dashboard for statistics
+\end{enumerate}
+
+\section{Candidate User}
+\begin{enumerate}
+    \item Register new account
+    \item Login and change temporary password
+    \item Submit application with project idea
+    \item Take assigned quiz within 48 hours
+    \item View results
+\end{enumerate}
+
+% ============================================================================
+% END OF DOCUMENT
+% ============================================================================
+\end{document}

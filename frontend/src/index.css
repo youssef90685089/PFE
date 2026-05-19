@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* ════════════════════════════════════════════════════════════
+   SIPMS — Custom Theme
+   ════════════════════════════════════════════════════════════ */
+
+@theme {
+  --color-primary-50: #e0f6fc;
+  --color-primary-100: #b3e8f8;
+  --color-primary-200: #80d8f3;
+  --color-primary-300: #4dc8ee;
+  --color-primary-400: #26bceb;
+  --color-primary-500: #0084ad; /* CLINISYS Corporate Blue */
+  --color-primary-600: #0078a0;
+  --color-primary-700: #006990;
+  --color-primary-800: #005b81;
+  --color-primary-900: #004064;
+
+  --color-secondary-500: #d2691e; /* CLINISYS Accent Orange */
+
+  --color-surface-50: #f8fafc;
+  --color-surface-100: #f1f5f9;
+  --color-surface-200: #e2e8f0;
+  --color-surface-300: #cbd5e1;
+  --color-surface-400: #94a3b8;
+  --color-surface-500: #64748b;
+  --color-surface-600: #475569;
+  --color-surface-700: #334155;
+  --color-surface-800: #1e293b;
+  --color-surface-900: #0f172a;
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Base Styles ──────────────────────────────────────── */
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    @apply bg-surface-50 text-surface-900 antialiased;
+  }
+
+  * {
+    @apply border-surface-200;
+  }
+}
+
+/* ── Scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+/* ── Animations ──────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-fade-in { animation: fadeIn 0.4s ease-out; }
+.animate-slide-in { animation: slideIn 0.3s ease-out; }
+.animate-pulse-subtle { animation: pulse-subtle 2s ease-in-out infinite; }
+
+/* ── Glass Effect ──────────────────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
