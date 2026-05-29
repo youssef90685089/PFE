@@ -8,14 +8,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
-public class CandidateDto {
+public class InternshipFileDto {
     private Long id;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String phone;
-    private String cin;
-    private boolean hasUserAccount;
-    private List<InternshipFileDto> internshipFiles;
+    private Long candidateId;
+    private Integer year;
+    private String university;
+    private String degree;
+    private String skillsTags;
+    private List<String> documentFileNames;
     private LocalDateTime createdAt;
 }

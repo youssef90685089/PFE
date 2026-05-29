@@ -17,8 +17,12 @@ public class Document {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_id", nullable = false)
+    @JoinColumn(name = "application_id")
     private Application application;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "internship_file_id")
+    private InternshipFile internshipFile;
 
     @Column(name = "file_name", nullable = false, length = 300)
     private String fileName;

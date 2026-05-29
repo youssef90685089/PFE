@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { supervisorsApi } from '../../api/axios';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { Plus, Edit2, X, Trash2, Search } from 'lucide-react';
@@ -48,20 +49,21 @@ export default function SupervisorsPage() {
       try {
         await supervisorsApi.update(id, { ...supervisor, active: !supervisor.active });
         setSupervisors(prev => prev.map(s => s.id === id ? { ...s, active: !s.active } : s));
+        toast.success('Supervisor status updated successfully');
       } catch (error) {
-        alert('Failed to toggle status');
+        toast.error('Failed to toggle status');
       }
     }
   };
 
   const handleDeleteSupervisor = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this supervisor?')) return;
     try {
       await supervisorsApi.delete(id);
       setSupervisors(prev => prev.filter(s => s.id !== id));
       if (selectedSupervisor?.id === id) setSelectedSupervisor(null);
+      toast.success('Supervisor deleted successfully');
     } catch (error) {
-      alert('Failed to delete supervisor. Please try again.');
+      toast.error('Failed to delete supervisor. Please try again.');
     }
   };
 
@@ -109,7 +111,7 @@ export default function SupervisorsPage() {
     console.log('Creating supervisor with data:', formData);
     
     if (!formData.fullName || !formData.email || !formData.department) {
-      alert('Please fill in all required fields');
+      toast.error('Please fill in all required fields');
       return;
     }
     
@@ -131,16 +133,16 @@ export default function SupervisorsPage() {
       
       setSupervisors(prev => [newSupervisor, ...prev]);
       setShowAddModal(false);
-      alert(`Supervisor created successfully!\n\nEmail: ${newSupervisor.email}`);
+      toast.success(`Supervisor created successfully!\n\nEmail: ${newSupervisor.email}`);
     } catch (error) {
       console.error('Error creating supervisor:', error);
-      alert('Failed to create supervisor. Please try again.');
+      toast.error('Failed to create supervisor. Please try again.');
     }
   };
 
   const handleSaveModify = async () => {
     if (!formData.fullName || !formData.email || !formData.department) {
-      alert('Please fill in all required fields');
+      toast.error('Please fill in all required fields');
       return;
     }
     const updatedData = { ...formData, id: selectedSupervisor.id };
@@ -149,8 +151,9 @@ export default function SupervisorsPage() {
       setSupervisors(prev => prev.map(s => (s.id === selectedSupervisor.id ? updatedData : s)));
       setShowModifyModal(false);
       setSelectedSupervisor(null);
+      toast.success('Supervisor details updated successfully');
     } catch (error) {
-      alert('Failed to update supervisor. Please try again.');
+      toast.error('Failed to update supervisor. Please try again.');
     }
   };
 
@@ -230,15 +233,26 @@ export default function SupervisorsPage() {
                     </td>
                     <td className="py-3 px-4 text-sm text-surface-700">{supervisor.currentInterns || 0}/{supervisor.maxInterns}</td>
                     <td className="py-3 px-4">
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          handleModifySupervisorRow(supervisor);
-                        }}
-                        className="rounded-lg px-3 py-1 text-xs font-medium bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors"
-                      >
-                        <Edit2 className="h-3 w-3" />
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleModifySupervisorRow(supervisor);
+                          }}
+                          className="rounded-lg px-3 py-1 text-xs font-medium bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors"
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleDeleteSupervisor(supervisor.id);
+                          }}
+                          className="rounded-lg px-3 py-1 text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

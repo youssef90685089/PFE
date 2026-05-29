@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { quizzesApi } from '../../api/axios';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -84,8 +85,9 @@ export default function QuizPage() {
         questions: [{ questionText: '', optionA: '', optionB: '', optionC: '', optionD: '', correctOption: 'A', marks: 5 }]
       });
       loadData();
+      toast.success('Quiz created successfully');
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to create quiz');
+      toast.error(err.response?.data?.message || 'Failed to create quiz');
     } finally {
       setSubmitting(false);
     }
@@ -118,7 +120,8 @@ export default function QuizPage() {
       setTimeRemaining(0);
       const r = await quizzesApi.getMyResults();
       setResults(r.data?.data || []);
-    } catch (e) { alert(e.response?.data?.message || 'Auto-submission failed'); }
+      toast.success('Quiz auto-submitted (time expired)');
+    } catch (e) { toast.error(e.response?.data?.message || 'Auto-submission failed'); }
     finally { setSubmitting(false); }
   }, [activeQuiz, submitting]);
 
@@ -131,7 +134,8 @@ export default function QuizPage() {
       setResult(null);
       setCurrentQuestion(0);
       setTimeRemaining(quiz.durationMins * 60);
-    } catch (e) { alert(e.response?.data?.message || 'Failed to load quiz'); }
+      toast.success('Quiz started. Good luck!');
+    } catch (e) { toast.error(e.response?.data?.message || 'Failed to load quiz'); }
   };
 
   const handleSubmit = async () => {
@@ -145,7 +149,8 @@ export default function QuizPage() {
       setTimeRemaining(0);
       const r = await quizzesApi.getMyResults();
       setResults(r.data?.data || []);
-    } catch (e) { alert(e.response?.data?.message || 'Submission failed'); }
+      toast.success('Quiz submitted successfully');
+    } catch (e) { toast.error(e.response?.data?.message || 'Submission failed'); }
     finally { setSubmitting(false); }
   };
 

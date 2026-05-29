@@ -76,7 +76,7 @@ public class SecurityConfig {
                 // Candidates list — Receptionist also needs this
                 .requestMatchers(HttpMethod.GET, "/api/users/candidates").hasAnyRole("ADMIN", "RECEPTIONIST")
                 // All other /users/** endpoints are admin-only
-                .requestMatchers("/api/users/**").hasRole("ADMIN")
+                .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "RECEPTIONIST")
 
                 // Receptionist can read quizzes to assign them; Manager/Admin can also write
                 // Quizzes — refined access rules

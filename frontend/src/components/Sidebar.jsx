@@ -17,9 +17,10 @@ const NAV_ITEMS = {
   ],
   MANAGER: [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
+    { to: '/dashboard/candidates', icon: Users, label: 'Candidates' },
+    { to: '/dashboard/quizzes', icon: ClipboardCheck, label: 'Quizzes' },
     { to: '/dashboard/interviews', icon: CalendarDays, label: 'Schedule Interview' },
     { to: '/dashboard/project-assignment', icon: Briefcase, label: 'Assign Project' },
-    { to: '/dashboard/quizzes', icon: Brain, label: 'Quizzes' },
     { to: '/dashboard/notifications', icon: Bell, label: 'Notifications' },
     { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ],

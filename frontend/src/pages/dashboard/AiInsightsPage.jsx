@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { aiApi, supervisorsApi } from '../../api/axios';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { Brain, Sparkles, Users } from 'lucide-react';
@@ -20,7 +21,7 @@ export default function AiInsightsPage() {
     try {
       const res = await aiApi.rankProjects();
       setProjectRankings(res.data?.data || []);
-    } catch (e) { alert(e.response?.data?.message || 'Ranking failed'); }
+    } catch (e) { toast.error(e.response?.data?.message || 'AI ranking failed. Please try again.'); }
     finally { setLoading(false); }
   };
 
@@ -31,7 +32,7 @@ export default function AiInsightsPage() {
       const res = await aiApi.matchCandidates(supId);
       setCandidateMatchings(res.data?.data || []);
       setTab('candidates');
-    } catch (e) { alert(e.response?.data?.message || 'Matching failed'); }
+    } catch (e) { toast.error(e.response?.data?.message || 'Candidate matching failed. Please try again.'); }
     finally { setLoading(false); }
   };
 

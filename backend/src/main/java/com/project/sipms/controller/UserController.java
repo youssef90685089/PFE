@@ -38,35 +38,35 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
     @Operation(summary = "Get user by ID")
     public ResponseEntity<ApiResponse<UserDto>> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(userService.getUserById(id)));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
     @Operation(summary = "Create new user")
     public ResponseEntity<ApiResponse<UserDto>> createUser(@RequestBody UserDto userDto) {
         return ResponseEntity.ok(ApiResponse.ok("User created", userService.createUser(userDto)));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
     @Operation(summary = "Update user")
     public ResponseEntity<ApiResponse<UserDto>> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
         return ResponseEntity.ok(ApiResponse.ok("User updated", userService.updateUser(id, userDto)));
     }
 
     @PatchMapping("/{id}/toggle-active")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
     @Operation(summary = "Toggle user active/inactive status")
     public ResponseEntity<ApiResponse<UserDto>> toggleActive(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok("User status toggled", userService.toggleUserActive(id)));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
     @Operation(summary = "Delete a user")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);

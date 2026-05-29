@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
-import { applicationsApi, supervisorsApi } from '../../api/axios';
+import toast from 'react-hot-toast';
+import { applicationsApi, supervisorsApi, interviewsApi } from '../../api/axios';
+import { useNavigate } from 'react-router-dom';
 import DataTable from '../../components/ui/DataTable';
 import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { X, UserCheck, MessageSquare, ChevronDown } from 'lucide-react';
+import { X, UserCheck, MessageSquare, ChevronDown, CalendarDays } from 'lucide-react';
 
 export default function ApplicationsPage() {
+  const navigate = useNavigate();
   const [apps, setApps] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +22,10 @@ export default function ApplicationsPage() {
   // Modal state for manager notes
   const [notesModal, setNotesModal] = useState(null);
   const [managerNotes, setManagerNotes] = useState('');
+
+  // Interview schedule modal
+  const [interviewModal, setInterviewModal] = useState(null);
+  const [interviewForm, setInterviewForm] = useState({ scheduledAt: '', interviewer: '', type: 'TECHNICAL' });
 
   useEffect(() => { load(); }, []);
 
@@ -42,7 +49,8 @@ export default function ApplicationsPage() {
       await applicationsApi.updateStatus(id, body);
       load();
       setNotesModal(null);
-    } catch (e) { alert(e.response?.data?.message || 'Failed to update'); }
+      toast.success('Application status updated successfully');
+    } catch (e) { toast.error(e.response?.data?.message || 'Failed to update'); }
     finally { setUpdating(null); }
   };
 
@@ -54,12 +62,31 @@ export default function ApplicationsPage() {
       setAssignModal(null);
       setSelectedSupervisor('');
       load();
-    } catch (e) { alert(e.response?.data?.message || 'Failed to assign'); }
+      toast.success('Supervisor assigned successfully');
+    } catch (e) { toast.error(e.response?.data?.message || 'Failed to assign'); }
     finally { setUpdating(null); }
   };
 
+  const handleScheduleInterview = async (e) => {
+    e.preventDefault();
+    if (!interviewModal) return;
+    setUpdating('interview');
+    try {
+      await interviewsApi.schedule({
+        candidateId: interviewModal.candidateId,
+        scheduledAt: interviewForm.scheduledAt ? new Date(interviewForm.scheduledAt).toISOString() : new Date(Date.now() + 86400000).toISOString(),
+        interviewer: interviewForm.interviewer || 'Manager',
+        type: interviewForm.type,
+      });
+      toast.success('Interview scheduled for ' + interviewModal.candidateName);
+      setInterviewModal(null);
+      setInterviewForm({ scheduledAt: '', interviewer: '', type: 'TECHNICAL' });
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to schedule interview');
+    } finally { setUpdating(null); }
+  };
+
   const handleDecision = (id, decision) => {
-    // Open notes modal for accept/reject
     setNotesModal({ id, decision });
     setManagerNotes('');
   };
@@ -114,6 +141,12 @@ export default function ApplicationsPage() {
             <button onClick={() => handleStatusChange(r.id, nextStatus)} disabled={updating === r.id}
               className="rounded-lg bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700 hover:bg-primary-100 transition-colors disabled:opacity-50">
               → {nextStatus.replace(/_/g, ' ')}
+            </button>
+          )}
+          {(r.status === 'QUIZ_COMPLETED' || r.status === 'AI_EVALUATING' || r.status === 'MANAGER_REVIEW') && (
+            <button onClick={() => { setInterviewModal(r); setInterviewForm({ scheduledAt: '', interviewer: '', type: 'TECHNICAL' }); }}
+              className="rounded-lg bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700 hover:bg-purple-100 transition-colors">
+              <CalendarDays className="h-3 w-3 inline mr-0.5" /> Interview
             </button>
           )}
           {r.status === 'MANAGER_REVIEW' && (
@@ -226,6 +259,56 @@ export default function ApplicationsPage() {
                 {updating ? 'Processing...' : notesModal.decision === 'ACCEPTED' ? 'Confirm Accept' : 'Confirm Reject'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Interview Schedule Modal */}
+      {interviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-surface-900">
+                <CalendarDays className="h-5 w-5 inline mr-2 text-purple-600" />
+                Schedule Interview — {interviewModal.candidateName}
+              </h3>
+              <button onClick={() => setInterviewModal(null)} className="rounded-lg p-1 hover:bg-surface-100">
+                <X className="h-5 w-5 text-surface-400" />
+              </button>
+            </div>
+            <form onSubmit={handleScheduleInterview} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">Date & Time</label>
+                <input type="datetime-local" value={interviewForm.scheduledAt}
+                  onChange={e => setInterviewForm(f => ({...f, scheduledAt: e.target.value}))}
+                  className="w-full border border-surface-200 rounded-lg px-3 py-2.5 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">Interviewer</label>
+                <input type="text" value={interviewForm.interviewer}
+                  onChange={e => setInterviewForm(f => ({...f, interviewer: e.target.value}))}
+                  placeholder="Interviewer name"
+                  className="w-full border border-surface-200 rounded-lg px-3 py-2.5 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-1.5">Type</label>
+                <select value={interviewForm.type}
+                  onChange={e => setInterviewForm(f => ({...f, type: e.target.value}))}
+                  className="w-full border border-surface-200 rounded-lg px-3 py-2.5 text-sm focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all">
+                  <option value="TECHNICAL">Technical</option>
+                  <option value="HR">HR</option>
+                  <option value="MANAGER">Manager</option>
+                </select>
+              </div>
+              <div className="flex gap-2 justify-end pt-2">
+                <button type="button" onClick={() => setInterviewModal(null)}
+                  className="rounded-xl bg-surface-100 px-4 py-2 text-sm font-medium text-surface-600 hover:bg-surface-200">Cancel</button>
+                <button type="submit" disabled={updating === 'interview'}
+                  className="rounded-xl bg-purple-500 px-4 py-2 text-sm font-medium text-white hover:bg-purple-600 disabled:opacity-50">
+                  {updating === 'interview' ? 'Scheduling...' : 'Schedule Interview'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

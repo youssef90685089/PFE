@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { candidatesApi } from '../../api/axios';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
@@ -19,7 +20,8 @@ export default function ProfilePage() {
       const res = await candidatesApi.updateProfile(form);
       setProfile(res.data?.data);
       setEditing(false);
-    } catch (e) { alert(e.response?.data?.message || 'Failed'); }
+      toast.success('Profile updated successfully');
+    } catch (e) { toast.error(e.response?.data?.message || 'Failed'); }
     finally { setSaving(false); }
   };
 

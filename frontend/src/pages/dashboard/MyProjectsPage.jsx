@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { projectsApi } from '../../api/axios';
 import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -22,7 +23,8 @@ export default function MyProjectsPage() {
       setForm({ title: '', description: '', domain: '', technologyTags: '' });
       setShowForm(false);
       load();
-    } catch (e) { alert(e.response?.data?.message || 'Failed'); }
+      toast.success('Project idea submitted successfully');
+    } catch (e) { toast.error(e.response?.data?.message || 'Failed'); }
     finally { setSubmitting(false); }
   };
 

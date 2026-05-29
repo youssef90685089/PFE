@@ -44,6 +44,7 @@ public class QuizService {
     // ── READ ─────────────────────────────────────────────────────────────────
 
     /** Get all active quizzes (without correct answers for candidates) */
+    @Transactional(readOnly = true)
     public List<QuizDto> getActiveQuizzes() {
         return quizRepository.findByActiveTrue().stream()
                 .map(this::toDtoWithoutAnswers)
@@ -51,6 +52,7 @@ public class QuizService {
     }
 
     /** Get quiz with questions (for taking the quiz — no correct answers) */
+    @Transactional(readOnly = true)
     public QuizDto getQuizForCandidate(Long quizId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz", quizId));
@@ -58,6 +60,7 @@ public class QuizService {
     }
 
     /** Get quiz with correct answers (for managers/admins) */
+    @Transactional(readOnly = true)
     public QuizDto getQuizWithAnswers(Long quizId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz", quizId));
@@ -65,6 +68,7 @@ public class QuizService {
     }
 
     /** Get all quizzes for management */
+    @Transactional(readOnly = true)
     public List<QuizDto> getAllQuizzes() {
         return quizRepository.findAll().stream()
                 .map(this::toDtoWithAnswers)
@@ -234,6 +238,7 @@ public class QuizService {
     }
 
     /** Get quiz results for a candidate */
+    @Transactional(readOnly = true)
     public List<QuizResultDto> getCandidateResults(Long userId) {
         Candidate candidate = candidateRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Candidate not found for user: " + userId));

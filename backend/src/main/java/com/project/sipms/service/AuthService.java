@@ -6,9 +6,11 @@ import com.project.sipms.dto.AuthResponse;
 import com.project.sipms.dto.LoginRequest;
 import com.project.sipms.dto.RegisterRequest;
 import com.project.sipms.entity.Candidate;
+import com.project.sipms.entity.InternshipFile;
 import com.project.sipms.entity.Role;
 import com.project.sipms.entity.User;
 import com.project.sipms.repository.CandidateRepository;
+import com.project.sipms.repository.InternshipFileRepository;
 import com.project.sipms.repository.RoleRepository;
 import com.project.sipms.repository.UserRepository;
 import com.project.sipms.security.JwtTokenProvider;
@@ -39,11 +41,12 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final AuditService auditService;
+    private final InternshipFileRepository internshipFileRepository;
 
     public AuthService(AuthenticationManager authManager, UserRepository userRepository,
                        RoleRepository roleRepository, CandidateRepository candidateRepository,
                        PasswordEncoder passwordEncoder, JwtTokenProvider tokenProvider,
-                       AuditService auditService) {
+                       AuditService auditService, InternshipFileRepository internshipFileRepository) {
         this.authManager = authManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -51,6 +54,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
         this.auditService = auditService;
+        this.internshipFileRepository = internshipFileRepository;
     }
 
     /** Authenticate user and return JWT tokens. */
@@ -106,14 +110,27 @@ public class AuthService {
 
         // Create candidate profile
         Candidate candidate = Candidate.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
                 .user(user)
-                .university(request.getUniversity())
-                .degree(request.getDegree())
-                .graduationYear(request.getGraduationYear())
-                .skillsTags(request.getSkillsTags())
-                .bio(request.getBio())
                 .build();
-        candidateRepository.save(candidate);
+        candidate = candidateRepository.save(candidate);
+
+        // Create internship file from registration data
+        boolean hasFileData = request.getUniversity() != null || request.getDegree() != null
+                || request.getSkillsTags() != null || request.getGraduationYear() != null;
+        if (hasFileData) {
+            InternshipFile file = InternshipFile.builder()
+                    .candidate(candidate)
+                    .year(request.getGraduationYear() != null ? request.getGraduationYear() : java.time.LocalDate.now().getYear())
+                    .university(request.getUniversity())
+                    .degree(request.getDegree())
+                    .skillsTags(request.getSkillsTags())
+                    .build();
+            internshipFileRepository.save(file);
+        }
 
         // Generate tokens
         UserDetailsImpl userDetails = UserDetailsImpl.build(user);

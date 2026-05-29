@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { applicationsApi, projectsApi, supervisorsApi } from '../../api/axios';
 import DataTable from '../../components/ui/DataTable';
 import Badge from '../../components/ui/Badge';
@@ -40,8 +41,9 @@ export default function MyApplicationsPage() {
       setCvFile(null);
       setShowForm(false);
       load();
+      toast.success('Application submitted successfully');
     } catch (err) {
-      alert(err.response?.data?.message || 'Submission failed');
+      toast.error(err.response?.data?.message || 'Submission failed');
     } finally { setSubmitting(false); }
   };
 

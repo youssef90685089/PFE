@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { usersApi, generateSecurePassword } from '../../api/axios';
-// DataTable removed — using native table markup here
+import toast from 'react-hot-toast';
+import { usersApi } from '../../api/axios';
 import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { Plus, Edit2, X, Search } from 'lucide-react';
+import { Plus, Edit2, X, Search, Trash2 } from 'lucide-react';
 
 const ROLE_OPTIONS = ['ADMIN', 'MANAGER', 'RECEPTIONIST'];
 const STATUS_OPTIONS = [
@@ -19,17 +19,35 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', roles: ['CANDIDATE'], active: true });
   const [searchQuery, setSearchQuery] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => { load(); }, []);
 
-  const load = () => usersApi.getAll().then(r => setUsers(r.data?.data || [])).catch(() => setUsers([])).finally(() => setLoading(false));
+  const load = () =>
+    usersApi
+      .getAll()
+      .then(r => setUsers(r.data?.data || []))
+      .catch(() => setUsers([]))
+      .finally(() => setLoading(false));
 
   const toggleActive = async (id) => {
     try {
       await usersApi.toggleActive(id);
       setUsers(prev => prev.map(u => u.id === id ? { ...u, active: !u.active } : u));
+      toast.success('User status updated.');
+    } catch {
+      toast.error('Failed to toggle user status.');
+    }
+  };
+
+  const handleDeleteUser = async (id) => {
+    try {
+      await usersApi.delete(id);
+      setUsers(prev => prev.filter(u => u.id !== id));
+      if (selectedUser?.id === id) setSelectedUser(null);
+      toast.success('User deleted successfully');
     } catch (error) {
-      alert('Failed to toggle status');
+      toast.error('Failed to delete user. Please try again.');
     }
   };
 
@@ -42,8 +60,6 @@ export default function UsersPage() {
       user.roles?.some(r => r.toLowerCase().includes(query))
     );
   });
-
-  
 
   const handleAddUser = () => {
     setFormData({ firstName: '', lastName: '', email: '', roles: ['CANDIDATE'], active: true });
@@ -66,21 +82,32 @@ export default function UsersPage() {
     }
   };
 
+  /**
+   * Create user — password is NOT sent; the backend auto-generates a secure
+   * temporary password and emails it to the new user's address.
+   */
   const handleSaveAdd = async () => {
     if (!formData.firstName || !formData.lastName || !formData.email) {
-      alert('Please fill in all required fields');
+      toast.error('Please fill in all required fields.');
       return;
     }
-    const tempPassword = generateSecurePassword();
-    const userData = { ...formData, password: tempPassword, active: true, mustChangePassword: true };
+    setSubmitting(true);
+    // Omit password entirely — backend generates + emails it
+    const { password: _omit, ...userData } = { ...formData, active: true, mustChangePassword: true };
     try {
       const res = await usersApi.create(userData);
       const newUser = res.data?.data || { ...userData, id: Date.now() };
       setUsers(prev => [newUser, ...prev]);
       setShowAddModal(false);
-      alert(`User created successfully!\n\nEmail: ${newUser.email}\nTemporary Password: ${tempPassword}\nUser must change password on first login.\n\nAn email with login credentials has been sent to ${newUser.email}`);
+      toast.success(
+        `✅ User created! A welcome email with login credentials has been sent to ${newUser.email}.`,
+        { duration: 6000 }
+      );
     } catch (error) {
-      alert('Failed to create user');
+      const msg = error?.response?.data?.message || 'Failed to create user.';
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -91,11 +118,12 @@ export default function UsersPage() {
 
   const handleSaveModify = async () => {
     if (!formData.firstName || !formData.lastName || !formData.email) {
-      alert('Please fill in all fields');
+      toast.error('Please fill in all required fields.');
       return;
     }
+    setSubmitting(true);
     const payload = { ...formData };
-    // If password is empty, don't send it to the API (no change)
+    // If password is empty, don't send it (no change intended)
     if (!payload.password) delete payload.password;
     const updatedData = { ...payload, id: selectedUser.id };
     try {
@@ -103,8 +131,12 @@ export default function UsersPage() {
       setUsers(prev => prev.map(u => (u.id === selectedUser.id ? updatedData : u)));
       setShowModifyModal(false);
       setSelectedUser(null);
+      toast.success('User updated successfully.');
     } catch (error) {
-      console.error('Error updating user:', error);
+      const msg = error?.response?.data?.message || 'Failed to update user.';
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -113,20 +145,28 @@ export default function UsersPage() {
     handleSaveModify();
   };
 
-
-
   const columns = [
     { header: 'Name', render: (r) => <span className="font-medium text-surface-800">{r.firstName} {r.lastName}</span> },
     { header: 'Email', accessor: 'email' },
     { header: 'Role', render: (r) => <div className="flex gap-1">{(r.roles || []).map(role => <Badge key={role} status={role.replace('ROLE_', '')} />)}</div> },
-    { header: '', render: (r) => (
-      <div className="flex gap-2">
-        <button onClick={(e) => { e.stopPropagation(); handleModifyUser(r); }}
-          className="rounded-lg px-3 py-1 text-xs font-medium bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors">
-          <Edit2 className="h-3 w-3" />
-        </button>
-      </div>
-    )},
+    {
+      header: '', render: (r) => (
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); handleModifyUser(r); }}
+            className="rounded-lg px-3 py-1 text-xs font-medium bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors"
+          >
+            <Edit2 className="h-3 w-3" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); handleDeleteUser(r.id); }}
+            className="rounded-lg px-3 py-1 text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
+        </div>
+      )
+    },
   ];
 
   if (loading) return <LoadingSpinner />;
@@ -159,6 +199,7 @@ export default function UsersPage() {
             </button>
           </div>
         </div>
+
         <div className="bg-white rounded-2xl border border-surface-200 p-6">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -190,12 +231,17 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Add User Modal */}
+      {/* ── Add User Modal ───────────────────────────────────────────────── */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-surface-900">Add New User</h2>
+              <div>
+                <h2 className="text-xl font-bold text-surface-900">Add New User</h2>
+                <p className="text-xs text-surface-400 mt-1">
+                  A secure password will be auto-generated and emailed to the user.
+                </p>
+              </div>
               <button onClick={() => setShowAddModal(false)} className="text-surface-400 hover:text-surface-600">
                 <X className="h-5 w-5" />
               </button>
@@ -203,43 +249,46 @@ export default function UsersPage() {
 
             <form onSubmit={handleSaveAddSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-1.5">First Name</label>
+                <label className="block text-sm font-medium text-surface-700 mb-1.5">First Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={formData.firstName}
                   onChange={e => setFormData({ ...formData, firstName: e.target.value })}
                   className="w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                  placeholder="e.g. John"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-1.5">Last Name</label>
+                <label className="block text-sm font-medium text-surface-700 mb-1.5">Last Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={formData.lastName}
                   onChange={e => setFormData({ ...formData, lastName: e.target.value })}
                   className="w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                  placeholder="e.g. Doe"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-surface-700 mb-1.5">Email <span className="text-red-500">*</span></label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
                   className="w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                  placeholder="user@example.com"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-surface-700 mb-1.5">Password</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={e => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-                />
+              {/* Password field intentionally removed — backend auto-generates & emails it */}
+
+              {/* Auto-generated password notice */}
+              <div className="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+                <span className="text-lg">🔑</span>
+                <p className="text-xs text-blue-700 leading-relaxed">
+                  A <strong>secure temporary password</strong> will be auto-generated by the server and sent to the user's email address. The user will be prompted to change it on first login.
+                </p>
               </div>
 
               <div>
@@ -263,7 +312,7 @@ export default function UsersPage() {
                   className="w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
                 >
                   {STATUS_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <option key={String(opt.value)} value={String(opt.value)}>{opt.label}</option>
                   ))}
                 </select>
               </div>
@@ -279,10 +328,11 @@ export default function UsersPage() {
                 <button
                   type="button"
                   onClick={handleSaveAdd}
-                  className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 transition-colors"
+                  disabled={submitting}
+                  className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{ backgroundColor: '#007EA7' }}
                 >
-                  Create User
+                  {submitting ? 'Creating…' : 'Create User'}
                 </button>
               </div>
             </form>
@@ -290,7 +340,7 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* Modify User Modal */}
+      {/* ── Edit User Modal ──────────────────────────────────────────────── */}
       {showModifyModal && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
@@ -333,7 +383,7 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-surface-700 mb-1.5">New Password</label>
                 <input
                   type="password"
                   value={formData.password}
@@ -364,7 +414,7 @@ export default function UsersPage() {
                   className="w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
                 >
                   {STATUS_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <option key={String(opt.value)} value={String(opt.value)}>{opt.label}</option>
                   ))}
                 </select>
               </div>
@@ -379,10 +429,11 @@ export default function UsersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 transition-colors"
+                  disabled={submitting}
+                  className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{ backgroundColor: '#007EA7' }}
                 >
-                  Save Changes
+                  {submitting ? 'Saving…' : 'Save Changes'}
                 </button>
               </div>
             </form>

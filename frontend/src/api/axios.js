@@ -74,31 +74,23 @@ export const usersApi = {
 };
 
 
-// ── Candidates API ────────────────────────────────────────
+// ── Candidates API (standalone, no User account) ──────────
 export const candidatesApi = {
-  getAll: () => api.get('/candidates'),
-  getById: (id) => api.get(`/candidates/${id}`),
-  getMyProfile: () => api.get('/candidates/me'),
-  updateProfile: (data) => api.put('/candidates/me', data),
-  uploadCV: (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    return api.post('/candidates/me/cv', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
-  uploadDocuments: (userId, files) => {
-    // files: { cv, coverLetter, transcript, idCard, other } — all optional MultipartFile
-    const formData = new FormData();
-    if (files.cv)          formData.append('cv',          files.cv);
-    if (files.coverLetter) formData.append('coverLetter', files.coverLetter);
-    if (files.transcript)  formData.append('transcript',  files.transcript);
-    if (files.idCard)      formData.append('idCard',      files.idCard);
-    if (files.other)       formData.append('other',       files.other);
-    return api.post(`/candidates/${userId}/documents`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
+  getAll:              ()          => api.get('/candidates'),
+  getById:             (id)        => api.get(`/candidates/${id}`),
+  create:              (data)      => api.post('/candidates', data),
+  delete:              (id)        => api.delete(`/candidates/${id}`),
+  // Internship Files
+  addInternshipFile:   (cid, data) => api.post(`/candidates/${cid}/internship-files`, data),
+  addInternshipFileWithDocument: (cid, formData) => api.post(`/candidates/${cid}/internship-files/with-document`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  getInternshipFiles:  (cid)       => api.get(`/candidates/${cid}/internship-files`),
+  deleteInternshipFile:(fid)       => api.delete(`/candidates/internship-files/${fid}`),
+  // Manager action: approve and send quiz (NEW)
+  approveAndSendQuiz:  (cid, req)  => api.post(`/candidates/${cid}/approve-and-send-quiz`, req || {}),
+  // Manager action: legacy endpoint for backward compatibility
+  sendQuizAndInvite:   (cid)       => api.post(`/candidates/${cid}/invite`),
 };
 
 // ── Applications API ──────────────────────────────────────
@@ -189,6 +181,16 @@ export const notificationsApi = {
 // ── Dashboard API ─────────────────────────────────────────
 export const dashboardApi = {
   getManagerStats: () => api.get('/dashboard/manager/stats'),
+};
+
+// ── Interviews API ─────────────────────────────────────────
+export const interviewsApi = {
+  getAll:         ()                          => api.get('/interviews'),
+  getByStatus:    (status)                    => api.get(`/interviews/by-status/${status}`),
+  getByCandidate: (candidateId)               => api.get(`/interviews/by-candidate/${candidateId}`),
+  schedule:       (data)                      => api.post('/interviews', data),
+  updateResult:   (id, data)                  => api.put(`/interviews/${id}/result`, data),
+  delete:         (id)                        => api.delete(`/interviews/${id}`),
 };
 
 // ── AI API ────────────────────────────────────────────────

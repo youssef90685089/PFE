@@ -109,16 +109,35 @@ public class UserService {
             result.setPassword(rawPassword);  // Only set once — not stored in plain text
         }
 
-        // Always send welcome email with credentials — non-blocking
+        // Send welcome email with credentials — choose template based on role
         try {
-            emailService.sendWelcomeEmail(
-                    dto.getEmail(),
-                    dto.getFirstName() + " " + dto.getLastName(),
-                    rawPassword,
-                    "http://localhost:5174/login"
-            );
+            boolean isCandidate = roles.stream()
+                    .anyMatch(role -> "ROLE_CANDIDATE".equals(role.getName()));
+            
+            if (isCandidate) {
+                System.out.println("📧 [USER SERVICE] Triggering CANDIDATE welcome email for: " + dto.getEmail());
+                // Send candidate-specific email with quiz deadline notice
+                emailService.sendCandidateWelcomeEmail(
+                        dto.getEmail(),
+                        dto.getFirstName() + " " + dto.getLastName(),
+                        rawPassword,
+                        "http://localhost:5173/login",
+                        null
+                );
+            } else {
+                System.out.println("📧 [USER SERVICE] Triggering standard welcome email for: " + dto.getEmail());
+                // Send standard welcome email for staff
+                emailService.sendWelcomeEmail(
+                        dto.getEmail(),
+                        dto.getFirstName() + " " + dto.getLastName(),
+                        rawPassword,
+                        "http://localhost:5173/login"
+                );
+            }
         } catch (Exception e) {
             // Email failure is non-fatal — log and continue
+            System.err.println("❌ [USER SERVICE] Error sending email: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return result;
