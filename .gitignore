@@ -59,10 +59,4 @@ frontend/lint-output.txt
 *.mtc*
 *.out
 *.toc
-IIT_Sfax_Template/main.pdf
 IIT_Sfax_Template/main.log
-*.maf
-*.mtc*
-*.out
-*.pdf
-*.toc
