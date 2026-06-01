@@ -39,11 +39,24 @@ public class AuthController {
     // ── POST /api/auth/login ───────────────────────────────────────────────
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
-        log.info("Login attempt for: {}", request.getEmail());
+        log.info("=== LOGIN REQUEST ===");
+        log.info("Email: {}", request.getEmail());
+        log.info("Request received at: {}", System.currentTimeMillis());
 
         try {
+            if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+                log.warn("Empty email provided");
+                return ResponseEntity.ok(ApiResponse.error("Email is required"));
+            }
+
+            if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+                log.warn("Empty password provided");
+                return ResponseEntity.ok(ApiResponse.error("Password is required"));
+            }
+
             var userOpt = userRepository.findByEmail(request.getEmail());
             if (userOpt.isEmpty()) {
+                log.warn("User not found: {}", request.getEmail());
                 return ResponseEntity.ok(ApiResponse.error("Invalid email or password"));
             }
 
@@ -56,6 +69,7 @@ public class AuthController {
             }
 
             if (!user.isActive()) {
+                log.warn("Inactive account: {}", user.getEmail());
                 return ResponseEntity.ok(ApiResponse.error("Account is inactive. Contact your administrator."));
             }
 
@@ -81,11 +95,11 @@ public class AuthController {
                     .quizCompleted("quiz_completed".equals(user.getStatus()) || "quiz_failed".equals(user.getStatus()))
                     .build();
 
-            log.info("Login successful for: {} | roles: {} | mustChange: {}", user.getEmail(), roles, mustChangePassword);
+            log.info("✓ Login successful for: {} | roles: {} | mustChange: {}", user.getEmail(), roles, mustChangePassword);
             return ResponseEntity.ok(ApiResponse.ok("Login successful", response));
 
         } catch (Exception e) {
-            log.error("Login error for {}: {}", request.getEmail(), e.getMessage(), e);
+            log.error("✗ Login error for {}: {}", request.getEmail(), e.getMessage(), e);
             return ResponseEntity.ok(ApiResponse.error("Login error: " + e.getMessage()));
         }
     }

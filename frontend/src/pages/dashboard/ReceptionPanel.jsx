@@ -28,6 +28,7 @@ export default function ReceptionPanel() {
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState('');
   const [successMsg, setSuccessMsg]   = useState('');
+  const [activeTab, setActiveTab]     = useState('candidates'); // 'candidates' or 'files'
 
   const [search, setSearch]           = useState('');
 
@@ -44,6 +45,11 @@ export default function ReceptionPanel() {
   const [fileForm, setFileForm]         = useState(EMPTY_FILE_FORM);
   const [fileSubmitting, setFileSubmitting] = useState(false);
   const [fileDoc, setFileDoc]           = useState(null);
+
+  // ── View Files Modal ──
+  const [showFilesModal, setShowFilesModal] = useState(false);
+  const [selectedCandidateFiles, setSelectedCandidateFiles] = useState(null);
+  const [filesLoading, setFilesLoading] = useState(false);
 
   useEffect(() => { fetchCandidates(); }, []);
 
@@ -157,6 +163,39 @@ export default function ReceptionPanel() {
     setShowFileForm(true);
   };
 
+  // ── View Internship Files ────────────────────────────────
+  const handleViewFiles = async (candidate) => {
+    setSelectedCandidateFiles(candidate);
+    setShowFilesModal(true);
+    setFilesLoading(true);
+    try {
+      const res = await candidatesApi.getInternshipFiles(candidate.id);
+      setSelectedCandidateFiles({
+        ...candidate,
+        files: res.data?.data || []
+      });
+    } catch (err) {
+      toast.error('Failed to load internship files');
+      setSelectedCandidateFiles(null);
+    } finally {
+      setFilesLoading(false);
+    }
+  };
+
+  // ── Delete Internship File ───────────────────────────────
+  const handleDeleteFile = async (fileId) => {
+    if (!window.confirm('Delete this internship file?')) return;
+    try {
+      await candidatesApi.deleteInternshipFile(fileId);
+      toast.success('File deleted');
+      if (selectedCandidateFiles) {
+        handleViewFiles(selectedCandidateFiles);
+      }
+    } catch (err) {
+      toast.error('Failed to delete file');
+    }
+  };
+
   // ── Render ───────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-slate-50 p-6">
@@ -194,6 +233,32 @@ export default function ReceptionPanel() {
         </div>
       )}
 
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 border-b border-slate-200">
+        <button
+          onClick={() => setActiveTab('candidates')}
+          className={`px-4 py-3 font-semibold text-sm border-b-2 transition-colors ${
+            activeTab === 'candidates'
+              ? 'text-blue-600 border-blue-600'
+              : 'text-slate-500 border-transparent hover:text-slate-700'
+          }`}
+        >
+          <Users className="h-4 w-4 inline mr-2" />
+          Candidates
+        </button>
+        <button
+          onClick={() => setActiveTab('files')}
+          className={`px-4 py-3 font-semibold text-sm border-b-2 transition-colors ${
+            activeTab === 'files'
+              ? 'text-blue-600 border-blue-600'
+              : 'text-slate-500 border-transparent hover:text-slate-700'
+          }`}
+        >
+          <BookOpen className="h-4 w-4 inline mr-2" />
+          Internship Files
+        </button>
+      </div>
+
       {/* Search */}
       <div className="relative mb-5">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -204,7 +269,8 @@ export default function ReceptionPanel() {
         />
       </div>
 
-      {/* Candidates Table */}
+      {/* CANDIDATES TAB */}
+      {activeTab === 'candidates' && (
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100">
           <h2 className="text-sm font-semibold text-slate-700">
@@ -261,9 +327,12 @@ export default function ReceptionPanel() {
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-xs font-semibold bg-blue-50 text-blue-700 px-2 py-1 rounded-lg">
+                      <button
+                        onClick={() => handleViewFiles(c)}
+                        className="text-xs font-semibold bg-blue-50 text-blue-700 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
+                      >
                         {c.internshipFiles?.length || 0} file{(c.internshipFiles?.length || 0) !== 1 ? 's' : ''}
-                      </span>
+                      </button>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
@@ -290,6 +359,82 @@ export default function ReceptionPanel() {
           </div>
         )}
       </div>
+      )}
+
+      {/* FILES TAB */}
+      {activeTab === 'files' && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100">
+            <h2 className="text-sm font-semibold text-slate-700">
+              All Internship Files
+            </h2>
+          </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600/20 border-t-blue-600" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-16 text-slate-400">
+              <BookOpen className="h-10 w-10 mx-auto mb-3 opacity-30" />
+              <p className="text-sm">No internship files found</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-100">
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Candidate</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Year</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">University</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Degree</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Skills</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Documents</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {filtered.map(c => (c.internshipFiles || []).map(f => (
+                    <tr key={`${c.id}-${f.id}`} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0">
+                            {(c.firstName || '?').charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-900 text-sm">{c.firstName} {c.lastName}</p>
+                            <p className="text-xs text-slate-400">{c.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-slate-700">{f.year}</td>
+                      <td className="px-4 py-4 text-slate-700">{f.university || '—'}</td>
+                      <td className="px-4 py-4 text-slate-700">{f.degree || '—'}</td>
+                      <td className="px-4 py-4">
+                        {f.skillsTags ? (
+                          <div className="flex flex-wrap gap-1">
+                            {f.skillsTags.split(',').map((tag, idx) => (
+                              <span key={idx} className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{tag.trim()}</span>
+                            ))}
+                          </div>
+                        ) : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-4 py-4">
+                        {f.documentFileNames?.length > 0 ? (
+                          <span className="text-xs text-blue-600">{f.documentFileNames.length} file(s)</span>
+                        ) : <span className="text-slate-300">—</span>}
+                      </td>
+                    </tr>
+                  )))}
+                  {filtered.every(c => !c.internshipFiles?.length) && (
+                    <tr>
+                      <td colSpan="6" className="text-center py-12 text-slate-400 text-sm">No internship files found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Create Candidate Modal ── */}
       {showForm && (
@@ -439,6 +584,108 @@ export default function ReceptionPanel() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── View Internship Files Modal ── */}
+      {showFilesModal && selectedCandidateFiles && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5 sticky top-0 bg-white pb-3 border-b border-slate-100">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-blue-600" />
+                Internship Files — {selectedCandidateFiles.firstName} {selectedCandidateFiles.lastName}
+              </h2>
+              <button onClick={() => { setShowFilesModal(false); setSelectedCandidateFiles(null); }}
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {filesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600/20 border-t-blue-600" />
+              </div>
+            ) : !selectedCandidateFiles.files || selectedCandidateFiles.files.length === 0 ? (
+              <div className="text-center py-12 text-slate-400">
+                <BookOpen className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">No internship files</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {selectedCandidateFiles.files.map(f => (
+                  <div key={f.id} className="border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Calendar className="h-4 w-4 text-slate-400" />
+                          <p className="font-semibold text-slate-900">{f.year}</p>
+                          {f.university && (
+                            <>
+                              <span className="text-slate-300">•</span>
+                              <p className="text-sm text-slate-600">{f.university}</p>
+                            </>
+                          )}
+                        </div>
+                        {f.degree && (
+                          <p className="text-xs text-slate-500 mb-2">
+                            <GraduationCap className="h-3 w-3 inline mr-1" />
+                            {f.degree}
+                          </p>
+                        )}
+                        {f.skillsTags && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {f.skillsTags.split(',').map((tag, idx) => (
+                              <span key={idx} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">
+                                {tag.trim()}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {f.documentFileNames?.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {f.documentFileNames.map((docName, idx) => (
+                              <p key={idx} className="text-xs text-blue-600 flex items-center gap-1">
+                                📄 {docName}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleDeleteFile(f.id)}
+                        className="p-2 rounded-lg hover:bg-red-50 text-red-500 transition-colors shrink-0"
+                        title="Delete file"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-4 mt-4 border-t border-slate-100 sticky bottom-0 bg-white">
+              <button
+                onClick={() => {
+                  setShowFilesModal(false);
+                  setSelectedCandidateFiles(null);
+                }}
+                className="flex-1 border border-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl hover:bg-slate-50 transition-all text-sm"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  handleAddFileFor(selectedCandidateFiles);
+                  setShowFilesModal(false);
+                }}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl transition-all text-sm flex items-center justify-center gap-2"
+              >
+                <Plus className="h-4 w-4" /> Add Another File
+              </button>
+            </div>
           </div>
         </div>
       )}

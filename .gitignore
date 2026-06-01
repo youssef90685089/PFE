@@ -60,3 +60,6 @@ frontend/lint-output.txt
 *.out
 *.toc
 IIT_Sfax_Template/main.log
+uploads/
+*.pdf
+main_recovered.pdf
