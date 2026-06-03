@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { dashboardApi, applicationsApi } from '../../api/axios';
+import { dashboardApi, applicationsApi, usersApi } from '../../api/axios';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { Users, FileText, FolderKanban, TrendingUp, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { Users, FileText, FolderKanban, TrendingUp, Clock, CheckCircle2, XCircle, UserCheck } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const PIE_COLORS = ['#f59e0b', '#3b82f6', '#8b5cf6', '#6366f1', '#06b6d4', '#f97316', '#22c55e', '#ef4444'];
 
 export default function OverviewPage() {
-  const { user, isCandidate } = useAuth();
+  const { user, isCandidate, isAdmin, isManager } = useAuth();
   const [stats, setStats] = useState(null);
   const [myApps, setMyApps] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     (async () => {
@@ -21,6 +22,13 @@ export default function OverviewPage() {
         if (isCandidate()) {
           const res = await applicationsApi.getMy();
           setMyApps(res.data?.data || []);
+        } else if (isAdmin()) {
+          const [statsRes, usersRes] = await Promise.all([
+            dashboardApi.getManagerStats(),
+            usersApi.getAll(),
+          ]);
+          setStats(statsRes.data?.data);
+          setUsers(usersRes.data?.data || []);
         } else {
           const res = await dashboardApi.getManagerStats();
           setStats(res.data?.data);
@@ -82,7 +90,27 @@ export default function OverviewPage() {
     );
   }
 
-  // ── Admin/Manager View ────────────────────────────────────
+  // ── Admin View ────────────────────────────────────────────
+  if (isAdmin()) {
+    const activeUsers = users.filter(u => u.active).length;
+    const adminUsers = users.filter(u => u.roles?.some(r => r === 'ADMIN' || r === 'ROLE_ADMIN')).length;
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-surface-900">Admin Dashboard</h1>
+          <p className="text-surface-500 mt-1">System-wide user management overview</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <StatCard label="Total Users" value={users.length} icon={Users} color="primary" />
+          <StatCard label="Active Users" value={activeUsers} icon={UserCheck} color="success" />
+          <StatCard label="Admins" value={adminUsers} icon={UserCheck} color="info" />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Manager View ────────────────────────────────────
   if (!stats) return <p className="text-surface-500">No data available</p>;
 
   const statusData = Object.entries(stats.applicationsByStatus || {}).map(([name, value]) => ({ name: name.replace(/_/g, ' '), value }));
