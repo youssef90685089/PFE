@@ -47,8 +47,8 @@ public class DataInitializer {
     /**
      * Upsert a seed user:
      *  - Does NOT exist → create with BCrypt hash, active=true, mustChangePassword=false.
-     *  - Already exists  → force active=true + mustChangePassword=false to repair any stale DB state
-     *                      that would otherwise block logins after a redeploy or bad data.sql run.
+     *  - Already exists  → force active=true + mustChangePassword=false + verify password hash.
+     *                      If password hash is corrupted, regenerate it.
      */
     private void ensureSeedUser(UserRepository userRepository, PasswordEncoder passwordEncoder,
                                  String email, String firstName, String lastName, Set<Role> roles) {
@@ -62,6 +62,12 @@ public class DataInitializer {
                 if (existing.isMustChangePassword()) {
                     existing.setMustChangePassword(false);
                     dirty = true;
+                }
+                // Verify password hash matches "Admin@123"
+                if (!passwordEncoder.matches("Admin@123", existing.getPasswordHash())) {
+                    existing.setPasswordHash(passwordEncoder.encode("Admin@123"));
+                    dirty = true;
+                    System.out.println("[DataInit] Fixed corrupted password hash: " + email);
                 }
                 if (dirty) {
                     userRepository.save(existing);

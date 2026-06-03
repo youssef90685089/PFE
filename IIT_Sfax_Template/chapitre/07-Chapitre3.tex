@@ -245,7 +245,7 @@ This sequence diagram corresponds to Use Case: \textbf{Approve and Send Quiz} (U
 \subsection{Sequence: Interview Scheduling and Result Recording}
 This sequence diagram corresponds to Use Case: \textbf{Schedule Interview} and \textbf{Record Interview Result} (User Stories US-19 and US-20).
 \begin{enumerate}
-    \item Manager identifies a candidate whose application is in \texttt{QUIZ\_COMPLETED} or later status.
+    \item Manager identifies a candidate whose application is in \texttt{QUIZ\_COMPLETED} status AND who has passed the quiz (\texttt{passed = true}).
     \item Manager clicks "Schedule Interview" and fills the form (date/time, interviewer name, type: TECHNICAL or HR).
     \item \texttt{POST /api/interviews} is called with candidateId, applicationId, scheduledAt, interviewer, type.
     \item \texttt{InterviewService.createInterview()} saves the interview with status \texttt{SCHEDULED}.

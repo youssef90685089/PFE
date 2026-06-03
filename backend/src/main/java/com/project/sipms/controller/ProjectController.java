@@ -47,7 +47,7 @@ public class ProjectController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('CANDIDATE')")
+    @PreAuthorize("hasAnyRole('CANDIDATE', 'MANAGER', 'ADMIN')")
     @Operation(summary = "Submit a new project idea")
     public ResponseEntity<ApiResponse<ProjectDto>> createProject(
             @AuthenticationPrincipal UserDetailsImpl user,

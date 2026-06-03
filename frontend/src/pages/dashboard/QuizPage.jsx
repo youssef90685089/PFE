@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { quizzesApi } from '../../api/axios';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import Badge from '../../components/ui/Badge';
-import { Clock, CheckCircle2, AlertTriangle, Timer, ArrowRight, ArrowLeft, Plus, Trash2, X, Save } from 'lucide-react';
+import { Clock, CheckCircle2, AlertTriangle, Timer, ArrowRight, ArrowLeft, Plus, Trash2, X, Save, Eye, Edit, AlertCircle } from 'lucide-react';
 
 export default function QuizPage() {
   const { isCandidate, isManager, isAdmin } = useAuth();
@@ -16,9 +16,14 @@ export default function QuizPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [formErrors, setFormErrors] = useState({});
 
   // ── Admin Modal State ────────────────────────────────
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingQuiz, setEditingQuiz] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingQuiz, setViewingQuiz] = useState(null);
   const [newQuiz, setNewQuiz] = useState({
     title: '',
     description: '',
@@ -59,6 +64,26 @@ export default function QuizPage() {
     loadData();
   }, []);
 
+  // ── Form Validation ──────────────────────────────────
+  const validateQuizForm = (quizData) => {
+    const errors = {};
+    if (!quizData.title?.trim()) errors.title = 'Title is required';
+    if (!quizData.description?.trim()) errors.description = 'Description is required';
+    if (!quizData.specialty) errors.specialty = 'Specialty is required';
+    if (!quizData.durationMins || quizData.durationMins < 1) errors.durationMins = 'Duration must be at least 1 minute';
+    if (quizData.passingScore < 0 || quizData.passingScore > 100) errors.passingScore = 'Passing score must be between 0 and 100';
+    if (!quizData.questions || quizData.questions.length === 0) errors.questions = 'At least one question is required';
+    else {
+      quizData.questions.forEach((q, i) => {
+        if (!q.questionText?.trim()) errors[`q${i}_text`] = true;
+        ['A', 'B', 'C', 'D'].forEach(opt => {
+          if (!q[`option${opt}`]?.trim()) errors[`q${i}_opt`] = true;
+        });
+      });
+    }
+    return errors;
+  };
+
   // ── Admin Quiz Creation ──────────────────────────────
   const addQuestion = () => {
     setNewQuiz({
@@ -75,7 +100,13 @@ export default function QuizPage() {
   };
 
   const handleCreateQuiz = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    const errors = validateQuizForm(newQuiz);
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      toast.error('Please fix validation errors');
+      return;
+    }
     setSubmitting(true);
     try {
       await quizzesApi.create(newQuiz);
@@ -84,6 +115,7 @@ export default function QuizPage() {
         title: '', description: '', specialty: '', durationMins: 30, passingScore: 60,
         questions: [{ questionText: '', optionA: '', optionB: '', optionC: '', optionD: '', correctOption: 'A', marks: 5 }]
       });
+      setFormErrors({});
       loadData();
       toast.success('Quiz created successfully');
     } catch (err) {
@@ -152,6 +184,71 @@ export default function QuizPage() {
       toast.success('Quiz submitted successfully');
     } catch (e) { toast.error(e.response?.data?.message || 'Submission failed'); }
     finally { setSubmitting(false); }
+  };
+
+  // ── Edit/View Handlers ──────────────────────────────
+  const openViewModal = (quiz) => {
+    setViewingQuiz(quiz);
+    setShowViewModal(true);
+  };
+
+  const openEditModal = (quiz) => {
+    setEditingQuiz({
+      id: quiz.id,
+      title: quiz.title || '',
+      description: quiz.description || '',
+      specialty: quiz.specialty || '',
+      durationMins: quiz.durationMins || 30,
+      passingScore: quiz.passingScore || 60,
+      questions: (quiz.questions || []).map(q => ({
+        id: q.id || undefined,
+        questionText: q.questionText || '',
+        optionA: q.optionA || '',
+        optionB: q.optionB || '',
+        optionC: q.optionC || '',
+        optionD: q.optionD || '',
+        correctOption: q.correctOption || 'A',
+        marks: q.marks || 5
+      }))
+    });
+    setFormErrors({});
+    setShowEditModal(true);
+  };
+
+  const addEditQuestion = () => {
+    setEditingQuiz({
+      ...editingQuiz,
+      questions: [...editingQuiz.questions, { questionText: '', optionA: '', optionB: '', optionC: '', optionD: '', correctOption: 'A', marks: 5 }]
+    });
+  };
+
+  const removeEditQuestion = (idx) => {
+    if (editingQuiz.questions.length <= 1) return;
+    const qs = [...editingQuiz.questions];
+    qs.splice(idx, 1);
+    setEditingQuiz({ ...editingQuiz, questions: qs });
+  };
+
+  const handleUpdateQuiz = async () => {
+    const errors = validateQuizForm(editingQuiz);
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      toast.error('Please fix validation errors');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await quizzesApi.update(editingQuiz.id, editingQuiz);
+      setShowEditModal(false);
+      setEditingQuiz(null);
+      setFormErrors({});
+      loadData();
+      toast.success('Quiz updated successfully');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update quiz');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const formatTime = (seconds) => {
@@ -330,13 +427,24 @@ export default function QuizPage() {
                 <span>{q.questionCount} questions</span>
                 <span>Pass: {q.passingScore}%</span>
               </div>
-              {isCandidate?.() && (
+              {isCandidate?.() ? (
                 <button onClick={() => startQuiz(q.id)} disabled={attempted}
                   className={`mt-4 w-full rounded-xl py-2.5 text-sm font-medium transition-all ${
                     attempted ? 'bg-surface-100 text-surface-400 cursor-not-allowed' : 'bg-primary-500 text-white hover:bg-primary-600 shadow-sm'
                   }`}>
                   {attempted ? '✓ Completed' : 'Start Quiz'}
                 </button>
+              ) : (isAdmin?.() || isManager?.()) && (
+                <div className="mt-4 flex gap-2">
+                  <button onClick={() => openViewModal(q)}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-surface-200 py-2.5 text-sm font-medium text-surface-600 hover:bg-surface-50 transition-all">
+                    <Eye className="h-4 w-4" /> View
+                  </button>
+                  <button onClick={() => openEditModal(q)}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-primary-500 py-2.5 text-sm font-medium text-white hover:bg-primary-600 shadow-sm transition-all">
+                    <Edit className="h-4 w-4" /> Edit
+                  </button>
+                </div>
               )}
             </div>
           );
@@ -379,12 +487,13 @@ export default function QuizPage() {
                   <label className="text-sm font-semibold text-surface-700">Quiz Title</label>
                   <input required type="text" value={newQuiz.title} onChange={e => setNewQuiz({...newQuiz, title: e.target.value})}
                     placeholder="e.g. React & Frontend Fundamentals"
-                    className="w-full rounded-xl border border-surface-200 px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all" />
+                    className={`w-full rounded-xl border px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all ${formErrors.title ? 'border-red-300 bg-red-50' : 'border-surface-200'}`} />
+                  {formErrors.title && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{formErrors.title}</p>}
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-surface-700">Target Specialty</label>
                   <select required value={newQuiz.specialty} onChange={e => setNewQuiz({...newQuiz, specialty: e.target.value})}
-                    className="w-full rounded-xl border border-surface-200 px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all">
+                    className={`w-full rounded-xl border px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all ${formErrors.specialty ? 'border-red-300 bg-red-50' : 'border-surface-200'}`}>
                     <option value="">Select Specialty...</option>
                     <option value="Web Development">Web Development</option>
                     <option value="Security">Security</option>
@@ -392,22 +501,26 @@ export default function QuizPage() {
                     <option value="Data Science">Data Science</option>
                     <option value="Mobile">Mobile</option>
                   </select>
+                  {formErrors.specialty && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{formErrors.specialty}</p>}
                 </div>
                 <div className="md:col-span-2 space-y-2">
                   <label className="text-sm font-semibold text-surface-700">Description</label>
                   <textarea required value={newQuiz.description} onChange={e => setNewQuiz({...newQuiz, description: e.target.value})}
                     placeholder="Briefly describe what this assessment covers..." rows={2}
-                    className="w-full rounded-xl border border-surface-200 px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all" />
+                    className={`w-full rounded-xl border px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all ${formErrors.description ? 'border-red-300 bg-red-50' : 'border-surface-200'}`} />
+                  {formErrors.description && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{formErrors.description}</p>}
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-surface-700">Duration (Minutes)</label>
-                  <input required type="number" value={newQuiz.durationMins} onChange={e => setNewQuiz({...newQuiz, durationMins: parseInt(e.target.value)})}
-                    className="w-full rounded-xl border border-surface-200 px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all" />
+                  <input required type="number" min="1" value={newQuiz.durationMins} onChange={e => setNewQuiz({...newQuiz, durationMins: parseInt(e.target.value) || 0})}
+                    className={`w-full rounded-xl border px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all ${formErrors.durationMins ? 'border-red-300 bg-red-50' : 'border-surface-200'}`} />
+                  {formErrors.durationMins && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{formErrors.durationMins}</p>}
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-surface-700">Passing Score (%)</label>
-                  <input required type="number" value={newQuiz.passingScore} onChange={e => setNewQuiz({...newQuiz, passingScore: parseInt(e.target.value)})}
-                    className="w-full rounded-xl border border-surface-200 px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all" />
+                  <input required type="number" min="0" max="100" value={newQuiz.passingScore} onChange={e => setNewQuiz({...newQuiz, passingScore: parseInt(e.target.value) || 0})}
+                    className={`w-full rounded-xl border px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all ${formErrors.passingScore ? 'border-red-300 bg-red-50' : 'border-surface-200'}`} />
+                  {formErrors.passingScore && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{formErrors.passingScore}</p>}
                 </div>
               </div>
 
@@ -422,12 +535,19 @@ export default function QuizPage() {
                 </div>
 
                 <div className="space-y-6">
-                  {newQuiz.questions.map((q, qIdx) => (
-                    <div key={qIdx} className="p-6 rounded-2xl border border-surface-100 bg-surface-50/30 space-y-4 relative group">
+                  {newQuiz.questions.map((q, qIdx) => {
+                    const hasQError = formErrors[`q${qIdx}_text`] || formErrors[`q${qIdx}_opt`];
+                    return (
+                    <div key={qIdx} className={`p-6 rounded-2xl border space-y-4 relative group ${hasQError ? 'border-red-200 bg-red-50/30' : 'border-surface-100 bg-surface-50/30'}`}>
                       <button type="button" onClick={() => removeQuestion(qIdx)}
                         className="absolute top-4 right-4 p-2 text-surface-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100">
                         <Trash2 className="h-4 w-4" />
                       </button>
+                      {hasQError && (
+                        <div className="absolute top-4 left-4 flex items-center gap-1 text-xs text-red-500">
+                          <AlertCircle className="h-3 w-3" /> All fields required
+                        </div>
+                      )}
                       
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-surface-400 uppercase tracking-wider">Question {qIdx + 1}</label>
@@ -437,7 +557,7 @@ export default function QuizPage() {
                             qs[qIdx].questionText = e.target.value;
                             setNewQuiz({...newQuiz, questions: qs});
                           }}
-                          className="w-full bg-white rounded-xl border border-surface-200 px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all" />
+                          className={`w-full bg-white rounded-xl border px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all ${formErrors[`q${qIdx}_text`] ? 'border-red-300' : 'border-surface-200'}`} />
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -452,7 +572,7 @@ export default function QuizPage() {
                                 qs[qIdx][`option${opt}`] = e.target.value;
                                 setNewQuiz({...newQuiz, questions: qs});
                               }}
-                              className="flex-1 bg-white rounded-xl border border-surface-200 px-4 py-2 text-sm focus:border-primary-500 transition-all" />
+                              className={`flex-1 bg-white rounded-xl border px-4 py-2 text-sm focus:border-primary-500 transition-all ${formErrors[`q${qIdx}_opt`] ? 'border-red-300' : 'border-surface-200'}`} />
                           </div>
                         ))}
                       </div>
@@ -475,15 +595,16 @@ export default function QuizPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <label className="text-sm font-medium text-surface-600">Marks:</label>
-                          <input type="number" value={q.marks} onChange={e => {
+                          <input type="number" min="1" value={q.marks} onChange={e => {
                             const qs = [...newQuiz.questions];
-                            qs[qIdx].marks = parseInt(e.target.value);
+                            qs[qIdx].marks = parseInt(e.target.value) || 0;
                             setNewQuiz({...newQuiz, questions: qs});
                           }} className="w-16 bg-white rounded-lg border border-surface-200 px-3 py-1 text-sm" />
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </form>
@@ -496,6 +617,217 @@ export default function QuizPage() {
               <button onClick={handleCreateQuiz} disabled={submitting}
                 className="flex items-center gap-2 px-8 py-2.5 bg-primary-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-primary-500/25 hover:bg-primary-600 disabled:opacity-50 transition-all">
                 {submitting ? 'Creating...' : <><Save className="h-4 w-4" /> Save Quiz</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── View Quiz Modal ──────────────────────────── */}
+      {showViewModal && viewingQuiz && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-900/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-scale-up">
+            <div className="p-6 border-b border-surface-100 flex items-center justify-between bg-surface-50/50">
+              <div>
+                <h2 className="text-xl font-bold text-surface-900">{viewingQuiz.title}</h2>
+                <p className="text-sm text-surface-500 mt-0.5">{viewingQuiz.description}</p>
+              </div>
+              <button onClick={() => setShowViewModal(false)} className="p-2 hover:bg-surface-100 rounded-full transition-colors">
+                <X className="h-5 w-5 text-surface-400" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-8 space-y-6">
+              <div className="flex items-center gap-4 text-sm text-surface-500">
+                <Badge status="NEUTRAL" text={viewingQuiz.specialty} />
+                <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> {viewingQuiz.durationMins} min</span>
+                <span>{viewingQuiz.questionCount || (viewingQuiz.questions || []).length} questions</span>
+                <span>Pass: {viewingQuiz.passingScore}%</span>
+              </div>
+              <div className="space-y-4">
+                {(viewingQuiz.questions || []).map((q, idx) => (
+                  <div key={q.id || idx} className="p-5 rounded-2xl border border-surface-100 bg-surface-50/30">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold text-surface-400 uppercase tracking-wider">Question {idx + 1}</span>
+                      <span className="text-xs text-surface-400">{q.marks} marks</span>
+                    </div>
+                    <p className="text-surface-800 font-medium mb-3">{q.questionText}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {['A', 'B', 'C', 'D'].map(opt => {
+                        const isCorrect = q.correctOption === opt;
+                        return (
+                          <div key={opt} className={`flex items-center gap-3 rounded-xl border p-3 text-sm ${isCorrect ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-surface-200 bg-white text-surface-600'}`}>
+                            <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${isCorrect ? 'bg-emerald-500 text-white' : 'bg-surface-100 text-surface-500'}`}>
+                              {opt}
+                            </span>
+                            <span className="flex-1">{q[`option${opt}`]}</span>
+                            {isCorrect && <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="p-6 border-t border-surface-100 bg-surface-50/50 flex justify-end">
+              <button onClick={() => setShowViewModal(false)}
+                className="px-6 py-2.5 text-sm font-semibold text-surface-600 hover:bg-surface-100 rounded-xl transition-all">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Edit Quiz Modal ──────────────────────────── */}
+      {showEditModal && editingQuiz && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-900/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-scale-up">
+            <div className="p-6 border-b border-surface-100 flex items-center justify-between bg-surface-50/50">
+              <h2 className="text-xl font-bold text-surface-900">Edit Assessment</h2>
+              <button onClick={() => { setShowEditModal(false); setEditingQuiz(null); setFormErrors({}); }}
+                className="p-2 hover:bg-surface-100 rounded-full transition-colors">
+                <X className="h-5 w-5 text-surface-400" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-8 space-y-8">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-surface-700">Quiz Title</label>
+                  <input type="text" value={editingQuiz.title} onChange={e => setEditingQuiz({...editingQuiz, title: e.target.value})}
+                    placeholder="e.g. React & Frontend Fundamentals"
+                    className={`w-full rounded-xl border px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all ${formErrors.title ? 'border-red-300 bg-red-50' : 'border-surface-200'}`} />
+                  {formErrors.title && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{formErrors.title}</p>}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-surface-700">Target Specialty</label>
+                  <select value={editingQuiz.specialty} onChange={e => setEditingQuiz({...editingQuiz, specialty: e.target.value})}
+                    className={`w-full rounded-xl border px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all ${formErrors.specialty ? 'border-red-300 bg-red-50' : 'border-surface-200'}`}>
+                    <option value="">Select Specialty...</option>
+                    <option value="Web Development">Web Development</option>
+                    <option value="Security">Security</option>
+                    <option value="Power BI">Power BI</option>
+                    <option value="Data Science">Data Science</option>
+                    <option value="Mobile">Mobile</option>
+                  </select>
+                  {formErrors.specialty && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{formErrors.specialty}</p>}
+                </div>
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-sm font-semibold text-surface-700">Description</label>
+                  <textarea value={editingQuiz.description} onChange={e => setEditingQuiz({...editingQuiz, description: e.target.value})}
+                    placeholder="Briefly describe what this assessment covers..." rows={2}
+                    className={`w-full rounded-xl border px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all ${formErrors.description ? 'border-red-300 bg-red-50' : 'border-surface-200'}`} />
+                  {formErrors.description && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{formErrors.description}</p>}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-surface-700">Duration (Minutes)</label>
+                  <input type="number" min="1" value={editingQuiz.durationMins} onChange={e => setEditingQuiz({...editingQuiz, durationMins: parseInt(e.target.value) || 0})}
+                    className={`w-full rounded-xl border px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all ${formErrors.durationMins ? 'border-red-300 bg-red-50' : 'border-surface-200'}`} />
+                  {formErrors.durationMins && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{formErrors.durationMins}</p>}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-surface-700">Passing Score (%)</label>
+                  <input type="number" min="0" max="100" value={editingQuiz.passingScore} onChange={e => setEditingQuiz({...editingQuiz, passingScore: parseInt(e.target.value) || 0})}
+                    className={`w-full rounded-xl border px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all ${formErrors.passingScore ? 'border-red-300 bg-red-50' : 'border-surface-200'}`} />
+                  {formErrors.passingScore && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{formErrors.passingScore}</p>}
+                </div>
+              </div>
+
+              {/* Question Builder */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-surface-800 text-lg">Questions ({editingQuiz.questions.length})</h3>
+                  <button type="button" onClick={addEditQuestion}
+                    className="flex items-center gap-1.5 text-primary-600 font-semibold text-sm hover:text-primary-700 transition-colors">
+                    <Plus className="h-4 w-4" /> Add Question
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  {editingQuiz.questions.map((q, qIdx) => {
+                    const hasQError = formErrors[`q${qIdx}_text`] || formErrors[`q${qIdx}_opt`];
+                    return (
+                    <div key={qIdx} className={`p-6 rounded-2xl border space-y-4 relative group ${hasQError ? 'border-red-200 bg-red-50/30' : 'border-surface-100 bg-surface-50/30'}`}>
+                      <button type="button" onClick={() => removeEditQuestion(qIdx)}
+                        className="absolute top-4 right-4 p-2 text-surface-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                      {hasQError && (
+                        <div className="absolute top-4 left-4 flex items-center gap-1 text-xs text-red-500">
+                          <AlertCircle className="h-3 w-3" /> All fields required
+                        </div>
+                      )}
+                      
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-surface-400 uppercase tracking-wider">Question {qIdx + 1}</label>
+                        <input type="text" value={q.questionText} placeholder="Enter question..."
+                          onChange={e => {
+                            const qs = [...editingQuiz.questions];
+                            qs[qIdx].questionText = e.target.value;
+                            setEditingQuiz({...editingQuiz, questions: qs});
+                          }}
+                          className={`w-full bg-white rounded-xl border px-4 py-2.5 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all ${formErrors[`q${qIdx}_text`] ? 'border-red-300' : 'border-surface-200'}`} />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {['A', 'B', 'C', 'D'].map(opt => (
+                          <div key={opt} className="flex items-center gap-3">
+                            <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${q.correctOption === opt ? 'bg-primary-500 text-white' : 'bg-surface-200 text-surface-600'}`}>
+                              {opt}
+                            </span>
+                            <input type="text" value={q[`option${opt}`]} placeholder={`Option ${opt}`}
+                              onChange={e => {
+                                const qs = [...editingQuiz.questions];
+                                qs[qIdx][`option${opt}`] = e.target.value;
+                                setEditingQuiz({...editingQuiz, questions: qs});
+                              }}
+                              className={`flex-1 bg-white rounded-xl border px-4 py-2 text-sm focus:border-primary-500 transition-all ${formErrors[`q${qIdx}_opt`] ? 'border-red-300' : 'border-surface-200'}`} />
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center gap-4">
+                          <label className="text-sm font-medium text-surface-600">Correct Answer:</label>
+                          <div className="flex gap-2">
+                            {['A', 'B', 'C', 'D'].map(opt => (
+                              <button key={opt} type="button" onClick={() => {
+                                const qs = [...editingQuiz.questions];
+                                qs[qIdx].correctOption = opt;
+                                setEditingQuiz({...editingQuiz, questions: qs});
+                              }}
+                              className={`h-8 w-8 rounded-lg text-xs font-bold transition-all ${q.correctOption === opt ? 'bg-primary-500 text-white shadow-md' : 'bg-white border border-surface-200 text-surface-500 hover:border-surface-300'}`}>
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm font-medium text-surface-600">Marks:</label>
+                          <input type="number" min="1" value={q.marks} onChange={e => {
+                            const qs = [...editingQuiz.questions];
+                            qs[qIdx].marks = parseInt(e.target.value) || 0;
+                            setEditingQuiz({...editingQuiz, questions: qs});
+                          }} className="w-16 bg-white rounded-lg border border-surface-200 px-3 py-1 text-sm" />
+                        </div>
+                      </div>
+                    </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-surface-100 bg-surface-50/50 flex justify-end gap-3">
+              <button onClick={() => { setShowEditModal(false); setEditingQuiz(null); setFormErrors({}); }}
+                className="px-6 py-2.5 text-sm font-semibold text-surface-600 hover:bg-surface-100 rounded-xl transition-all">
+                Cancel
+              </button>
+              <button onClick={handleUpdateQuiz} disabled={submitting}
+                className="flex items-center gap-2 px-8 py-2.5 bg-primary-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-primary-500/25 hover:bg-primary-600 disabled:opacity-50 transition-all">
+                {submitting ? 'Updating...' : <><Save className="h-4 w-4" /> Update Quiz</>}
               </button>
             </div>
           </div>

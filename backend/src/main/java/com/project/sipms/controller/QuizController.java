@@ -90,6 +90,17 @@ public class QuizController {
         return ResponseEntity.ok(ApiResponse.ok("Quiz created successfully", created));
     }
 
+    // ── PUT update quiz — Admin / Manager ─────────────────────────────────────
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @Operation(summary = "Update an existing quiz with questions")
+    public ResponseEntity<ApiResponse<QuizDto>> updateQuiz(
+            @PathVariable Long id,
+            @RequestBody QuizCreateRequest req) {
+        QuizDto updated = quizService.updateQuiz(id, req);
+        return ResponseEntity.ok(ApiResponse.ok("Quiz updated successfully", updated));
+    }
+
     // ── POST submit quiz — Candidate ──────────────────────────────────────────
     @PostMapping("/submit")
     @PreAuthorize("hasRole('CANDIDATE')")

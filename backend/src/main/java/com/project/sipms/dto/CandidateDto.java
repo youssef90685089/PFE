@@ -18,4 +18,8 @@ public class CandidateDto {
     private boolean hasUserAccount;
     private List<InternshipFileDto> internshipFiles;
     private LocalDateTime createdAt;
+    /** null = no quiz taken, true = passed, false = failed */
+    private Boolean quizPassed;
+    /** percentage score (0-100) if quiz was taken */
+    private Integer quizScore;
 }

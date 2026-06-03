@@ -59,6 +59,15 @@ Supervisor & Views assigned interns and coordinates project progress with the ma
         \item Admins create quizzes with multiple-choice questions and configurable time limits.
         \item A countdown timer is displayed during the quiz; auto-submission occurs on expiry.
         \item Scores are automatically calculated and candidate status updated accordingly.
+        \item Real-time automated notifications are sent to the Manager immediately upon quiz submission.
+    \end{spacing}
+\end{itemize}
+
+\subsection{Project Configuration}
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item Managers and Admins can configure projects with titles, descriptions, and technology tags.
+        \item Candidates can propose projects which are then evaluated by the AI engine.
     \end{spacing}
 \end{itemize}
 
@@ -276,6 +285,29 @@ Exception & All supervisors at max capacity → manager alerted, candidate place
 \hline
 \end{tabular}
 \caption{Use case: Assign supervisor to candidate}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Field} & \textbf{Description} \\
+\hline
+Use Case & Schedule and Record Interview \\
+\hline
+Actor & Manager \\
+\hline
+Precondition & Candidate has completed and PASSED the technical quiz \\
+\hline
+Main Scenario & 1. Manager selects a candidate who passed the quiz \newline 2. Manager sets date, time, and interviewer name \newline 3. System schedules interview \newline 4. After interview, Manager inputs score and feedback \newline 5. System auto-completes interview and updates candidate status \\
+\hline
+Postcondition & Interview completed; candidate status advanced \\
+\hline
+Exception & Candidate failed quiz → System blocks interview scheduling \\
+\hline
+\end{tabular}
+\caption{Use case: Schedule and record interview}
 \end{table}
 
 \begin{table}[H]

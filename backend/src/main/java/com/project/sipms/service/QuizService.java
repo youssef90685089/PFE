@@ -137,6 +137,52 @@ public class QuizService {
         return toDtoWithAnswers(saved);
     }
 
+    // ── UPDATE ────────────────────────────────────────────────────────────────
+
+    @Transactional
+    public QuizDto updateQuiz(Long id, QuizCreateRequest req) {
+        Quiz quiz = quizRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz", id));
+
+        // Update basic fields
+        if (req.getTitle() != null) quiz.setTitle(req.getTitle());
+        if (req.getDescription() != null) quiz.setDescription(req.getDescription());
+        if (req.getSpecialty() != null) quiz.setSpecialty(req.getSpecialty());
+        if (req.getDurationMins() != null) quiz.setDurationMins(req.getDurationMins());
+        if (req.getPassingScore() != null) quiz.setPassingScore(req.getPassingScore());
+
+        // Replace questions if provided
+        if (req.getQuestions() != null && !req.getQuestions().isEmpty()) {
+            questionRepository.deleteByQuizId(quiz.getId());
+            quiz.getQuestions().clear();
+
+            int totalMarks = 0;
+            int idx = 0;
+            for (QuizCreateRequest.QuestionCreateDto qDto : req.getQuestions()) {
+                int marks = qDto.getMarks() != null ? qDto.getMarks() : 5;
+                totalMarks += marks;
+                QuizQuestion question = QuizQuestion.builder()
+                        .quiz(quiz)
+                        .questionText(qDto.getQuestionText())
+                        .optionA(qDto.getOptionA())
+                        .optionB(qDto.getOptionB())
+                        .optionC(qDto.getOptionC())
+                        .optionD(qDto.getOptionD())
+                        .correctOption(qDto.getCorrectOption() != null
+                                ? qDto.getCorrectOption().toUpperCase() : "A")
+                        .marks(marks)
+                        .orderIndex(qDto.getOrderIndex() != null ? qDto.getOrderIndex() : idx)
+                        .build();
+                quiz.getQuestions().add(question);
+                idx++;
+            }
+            quiz.setTotalMarks(totalMarks);
+        }
+
+        Quiz saved = quizRepository.save(quiz);
+        return toDtoWithAnswers(saved);
+    }
+
     // ── SUBMIT & GRADE ────────────────────────────────────────────────────────
 
     /**
@@ -223,6 +269,15 @@ public class QuizService {
                 : String.format("You scored %.1f%% on '%s'. The passing score is %d%%.", percentage, quiz.getTitle(), quiz.getPassingScore());
         notificationService.createNotification(userId, "Quiz Results",
                 resultMessage, passed ? "SUCCESS" : "WARNING", "/dashboard/quiz-interface");
+
+        // Notify managers that candidate took the quiz
+        List<User> managers = userRepository.findByRoleName("ROLE_MANAGER");
+        String managerMessage = String.format("The candidate %s %s took the quiz '%s' and scored %.1f%%.", 
+                candidate.getFirstName(), candidate.getLastName(), quiz.getTitle(), percentage);
+        for (User manager : managers) {
+            notificationService.createNotification(manager.getId(), "Candidate Quiz Completed",
+                    managerMessage, "INFO", "/dashboard/candidates");
+        }
 
         return QuizResultDto.builder()
                 .attemptId(attempt.getId())

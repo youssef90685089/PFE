@@ -80,7 +80,7 @@ public class CandidateService {
 
     @Transactional(readOnly = true)
     public List<CandidateDto> getAllCandidates() {
-        return candidateRepository.findAll().stream()
+        return candidateRepository.findAllWithUser().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
@@ -297,6 +297,15 @@ public class CandidateService {
     }
 
     private CandidateDto toDto(Candidate c) {
+        // Derive quiz pass status from linked User account
+        Boolean quizPassed = null;
+        Integer quizScore = null;
+        if (c.getUser() != null) {
+            String status = c.getUser().getStatus();
+            if ("quiz_completed".equals(status)) quizPassed = true;
+            else if ("quiz_failed".equals(status)) quizPassed = false;
+            quizScore = c.getUser().getQuizScore();
+        }
         return CandidateDto.builder()
                 .id(c.getId())
                 .firstName(c.getFirstName())
@@ -307,6 +316,8 @@ public class CandidateService {
                 .hasUserAccount(c.isHasUserAccount())
                 .internshipFiles(c.getInternshipFiles().stream().map(this::toFileDto).collect(Collectors.toList()))
                 .createdAt(c.getCreatedAt())
+                .quizPassed(quizPassed)
+                .quizScore(quizScore)
                 .build();
     }
 

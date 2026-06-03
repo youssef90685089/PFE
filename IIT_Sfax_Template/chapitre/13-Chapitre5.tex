@@ -48,7 +48,7 @@ The complete platform — frontend + backend + database — was tested as a unif
 \end{itemize}
 
 \subsection{User Acceptance Testing (UAT)}
-The platform was demonstrated to CLINISYS stakeholders (managers and receptionists) who validated each workflow against real operational scenarios. Feedback was collected and incorporated into the final sprint. All critical user stories (US-01 through US-21) were accepted.
+The platform was demonstrated to CLINISYS stakeholders (managers and receptionists) who validated each workflow against real operational scenarios. Feedback was collected and incorporated into the final sprint. All critical user stories (US-01 through US-23) were accepted.
 
 \section{TEST CASES}
 
@@ -95,6 +95,10 @@ TC-16 & File Download & Access uploaded PDF via /uploads/... URL & 200 OK, PDF s
 TC-17 & Email Notification & Manager approves candidate & Email sent to candidate with login credentials \\
 \hline
 TC-18 & User Management & Admin creates new user account & 200 OK, user created, password generated \\
+\hline
+TC-19 & Project Config & Manager creates a new project & 200 OK, project saved with specific technologies \\
+\hline
+TC-20 & Interview Gateway & Schedule interview for failed quiz candidate & 400 Bad Request, validation blocked scheduling \\
 \hline
 \end{tabular}
 \caption{Test case summary — key scenarios}
@@ -223,9 +227,13 @@ US-20 & Record interview result & TC-15 & \textcolor{green}{\checkmark Verified}
 \hline
 US-21 & View all interviews & TC-14 & \textcolor{green}{\checkmark Verified} \\
 \hline
+US-22 & Manager project configuration & TC-19 & \textcolor{green}{\checkmark Verified} \\
+\hline
+US-23 & Block interview on failed quiz & TC-20 & \textcolor{green}{\checkmark Verified} \\
+\hline
 \end{tabular}
 \caption{Requirements traceability matrix — all user stories verified}
 \end{table}
 
 \section{CONCLUSION}
-The testing phase confirmed that all 21 user stories are fully implemented and validated. The system handles edge cases gracefully, enforces role-based access at every endpoint, and responds within acceptable performance thresholds. No critical or high-severity defects remain.
+The testing phase confirmed that all 23 user stories are fully implemented and validated. The system handles edge cases gracefully, enforces role-based access at every endpoint, and responds within acceptable performance thresholds. No critical or high-severity defects remain.
