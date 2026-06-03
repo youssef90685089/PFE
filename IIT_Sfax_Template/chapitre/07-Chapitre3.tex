@@ -298,7 +298,40 @@ This sequence diagram corresponds to Use Case: \textbf{Schedule Interview} and \
 \caption{Complete database schema}
 \end{table}
 
-\subsection{Schema Diagram}
+\subsection{Normalization Analysis}
+The database schema is designed to comply with \textbf{Third Normal Form (3NF)} to minimize data redundancy and ensure referential integrity:
+
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{First Normal Form (1NF)}: All tables have a single-column primary key (\texttt{id}) with auto-increment. Every column contains atomic values — for example, \texttt{skills\_tags} stores comma-separated tags as a single string (denormalized for simplicity), while multi-valued attributes like quiz options use separate columns (\texttt{option\_a}, \texttt{option\_b}, etc.) rather than arrays or JSON.
+        \item \textbf{Second Normal Form (2NF)}: All non-key columns are fully functionally dependent on the primary key. There are no partial dependencies because every table uses a single-column primary key. For example, \texttt{documents.file\_name} depends only on \texttt{documents.id}, not on any candidate or application attribute.
+        \item \textbf{Third Normal Form (3NF)}: No transitive dependencies exist. Every non-key column depends directly on the primary key, not on another non-key column. For instance, \texttt{quizzes.passing\_score} depends only on \texttt{quizzes.id}, not on \texttt{quizzes.specialty} or \texttt{quizzes.title}.
+    \end{spacing}
+\end{itemize}
+
+Small controlled denormalizations were intentionally applied for performance:
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{Application.aiMatchScore} and \textbf{Project.aiScore} are stored directly on the entity rather than in a separate scores table, avoiding a join on every dashboard load.
+        \item \textbf{InternshipFile.skillsTags} uses a comma-separated string rather than a junction table, since tags are small in number and always retrieved together with the file record.
+    \end{spacing}
+\end{itemize}
+
+\subsection{Constraints and Integrity Rules}
+The schema enforces the following constraints to guarantee data quality:
+
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{NOT NULL constraints} on all business-critical columns: \texttt{users.email}, \texttt{candidates.email}, \texttt{internship\_files.year}, \texttt{applications.status}, \texttt{interviews.scheduled\_at}, \texttt{documents.file\_name}.
+        \item \textbf{UNIQUE constraints}: \texttt{users.email} is unique to prevent duplicate accounts. \texttt{candidates.email} is also unique to prevent duplicate registrations.
+        \item \textbf{CHECK constraints} enforced via Java enums mapped to MySQL ENUM columns: \texttt{applications.status} (PENDING, UNDER\_REVIEW, QUIZ\_PENDING, QUIZ\_COMPLETED, AI\_EVALUATING, MANAGER\_REVIEW, ACCEPTED, REJECTED), \texttt{interviews.type} (TECHNICAL, HR), \texttt{documents.document\_type} (CV, COVER\_LETTER, TRANSCRIPT, ID\_CARD, PHOTO, OTHER).
+        \item \textbf{DEFAULT values}: \texttt{applications.status} defaults to \texttt{PENDING}, \texttt{interviews.status} defaults to \texttt{SCHEDULED}, \texttt{quizzes.active} defaults to \texttt{true}.
+        \item \textbf{CASCADE rules}: Deleting a \texttt{Candidate} cascades to all linked \texttt{InternshipFile} and \texttt{Application} records. Deleting an \texttt{InternshipFile} cascades to its \texttt{Document} records.
+        \item \textbf{Foreign key constraints}: Every \texttt{FOREIGN KEY} ensures that referenced records exist. For example, \texttt{internship\_files.candidate\_id} references \texttt{candidates.id} and prevents orphaned records.
+    \end{spacing}
+\end{itemize}
+
+\subsection{Schema Design Decisions}
 The relational schema follows the entity relationships described in Section 3.3. Foreign key constraints enforce referential integrity across all tables. Key design decisions include:
 
 \begin{itemize}[leftmargin=2cm, topsep=0pt]
