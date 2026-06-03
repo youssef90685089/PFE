@@ -207,7 +207,7 @@ These scores are computed by the \texttt{AiService} which delegates to the confi
 \section{SEQUENCE DIAGRAMS}
 
 \subsection{Sequence: Candidate Registration with Internship File Upload}
-This sequence describes the complete candidate registration and document upload flow performed by the receptionist:
+This sequence describes the complete candidate registration and document upload flow performed by the receptionist. This sequence diagram corresponds to Use Case: \textbf{Register a New Candidate} and \textbf{Add Internship File with Document}.
 
 \begin{enumerate}
     \item Receptionist fills the candidate form (firstName, lastName, email, phone, CIN) and submits via the React frontend.
@@ -228,6 +228,7 @@ This sequence describes the complete candidate registration and document upload 
 \end{figure}
 
 \subsection{Sequence: Approve Candidate and Send Quiz}
+This sequence diagram corresponds to Use Case: \textbf{Approve and Send Quiz} (User Story US-18).
 \begin{enumerate}
     \item Manager selects a candidate and clicks "Approve \& Send Quiz" in the Candidates page.
     \item The \texttt{QuizSelectionModal} opens, loading existing quizzes from \texttt{GET /api/quizzes}.
@@ -241,7 +242,8 @@ This sequence describes the complete candidate registration and document upload 
     \item The frontend refreshes and displays the candidate with an active user account.
 \end{enumerate}
 
-\subsection{Sequence: Interview Scheduling}
+\subsection{Sequence: Interview Scheduling and Result Recording}
+This sequence diagram corresponds to Use Case: \textbf{Schedule Interview} and \textbf{Record Interview Result} (User Stories US-19 and US-20).
 \begin{enumerate}
     \item Manager identifies a candidate whose application is in \texttt{QUIZ\_COMPLETED} or later status.
     \item Manager clicks "Schedule Interview" and fills the form (date/time, interviewer name, type: TECHNICAL or HR).
