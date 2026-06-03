@@ -141,41 +141,11 @@ export const quizzesApi = {
 
 // ── Notifications API ─────────────────────────────────────
 export const notificationsApi = {
-  getAll: () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: { success: true, data: [] } });
-      }, 200);
-    });
-  },
-  getUnread: () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: { success: true, data: [] } });
-      }, 200);
-    });
-  },
-  getUnreadCount: () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: { success: true, data: 0 } });
-      }, 200);
-    });
-  },
-  markAsRead: (id) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: { success: true, id } });
-      }, 200);
-    });
-  },
-  markAllAsRead: () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: { success: true } });
-      }, 200);
-    });
-  },
+  getAll:         ()                             => api.get('/notifications'),
+  getUnread:      ()                             => api.get('/notifications/unread'),
+  getUnreadCount: ()                             => api.get('/notifications/unread-count'),
+  markAsRead:     (id)                           => api.patch(`/notifications/${id}/read`),
+  markAllAsRead:  ()                             => api.patch('/notifications/read-all'),
 };
 
 // ── Dashboard API ─────────────────────────────────────────

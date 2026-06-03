@@ -9,6 +9,7 @@ import com.project.sipms.entity.User;
 import com.project.sipms.repository.UserRepository;
 import com.project.sipms.security.JwtTokenProvider;
 import com.project.sipms.security.UserDetailsImpl;
+import com.project.sipms.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -28,12 +29,14 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
+    private final NotificationService notificationService;
 
     public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                          JwtTokenProvider tokenProvider) {
+                          JwtTokenProvider tokenProvider, NotificationService notificationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
+        this.notificationService = notificationService;
     }
 
     // ── POST /api/auth/login ───────────────────────────────────────────────
@@ -96,6 +99,21 @@ public class AuthController {
                     .build();
 
             log.info("✓ Login successful for: {} | roles: {} | mustChange: {}", user.getEmail(), roles, mustChangePassword);
+
+            // Notify admins when a user logs in for the first time (mustChangePassword)
+            if (mustChangePassword) {
+                String name = user.getFirstName() + " " + user.getLastName();
+                userRepository.findByRoleName("ROLE_ADMIN").forEach(admin ->
+                    notificationService.createNotification(
+                            admin.getId(),
+                            "New User Login",
+                            name + " (" + user.getEmail() + ") logged in for the first time and must change their password.",
+                            "INFO",
+                            "/dashboard/users"
+                    )
+                );
+            }
+
             return ResponseEntity.ok(ApiResponse.ok("Login successful", response));
 
         } catch (Exception e) {
@@ -141,6 +159,19 @@ public class AuthController {
         userRepository.save(user);
 
         log.info("Password changed successfully for user: {}", user.getEmail());
+
+        // Notify admins when a user changes their password
+        String name = user.getFirstName() + " " + user.getLastName();
+        userRepository.findByRoleName("ROLE_ADMIN").forEach(admin ->
+            notificationService.createNotification(
+                    admin.getId(),
+                    "Password Changed",
+                    name + " (" + user.getEmail() + ") has changed their password.",
+                    "INFO",
+                    "/dashboard/users"
+            )
+        );
+
         return ResponseEntity.ok(ApiResponse.ok("Password changed successfully"));
     }
 }
