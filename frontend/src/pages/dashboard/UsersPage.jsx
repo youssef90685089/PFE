@@ -6,7 +6,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 import { Plus, Edit2, X, Search, Trash2 } from 'lucide-react';
 
-const ROLE_OPTIONS = ['ADMIN', 'MANAGER', 'RECEPTIONIST', 'CANDIDATE'];
+const ROLE_OPTIONS = ['ADMIN', 'MANAGER', 'RECEPTIONIST'];
 const STATUS_OPTIONS = [
   { label: 'Active', value: true },
   { label: 'Inactive', value: false },
