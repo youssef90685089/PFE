@@ -6,7 +6,7 @@
 \newpage
 
 \section{INTRODUCTION}
-This chapter presents the technical design of the SIPMS platform. We detail the overall system architecture, the class model, the sequence diagrams for key workflows, and the relational database schema.
+This chapter presents the technical design of the SIPMS platform. We detail the overall system architecture, the class model with all entities and their relationships, the sequence diagrams for key workflows, and the relational database schema.
 
 \section{GENERAL ARCHITECTURE}
 
@@ -62,48 +62,79 @@ Authentication in SIPMS is stateless and JWT-based. The security flow operates a
 
 \begin{enumerate}
     \item The client sends credentials (email + password) to \texttt{POST /api/auth/login}.
-    \item Spring Security validates credentials via \texttt{UserDetailsService}.
-    \item On success, a signed JWT token is generated and returned to the client.
+    \item Spring Security validates credentials via \texttt{UserDetailsService} and BCrypt.
+    \item On success, a signed JWT token (HS512) is generated and returned to the client.
     \item For subsequent requests, the client includes the token in the \texttt{Authorization: Bearer} header.
-    \item The \texttt{JwtAuthenticationFilter} intercepts every request, validates the token, and populates the \texttt{SecurityContext}.
+    \item The \texttt{JwtAuthenticationFilter} intercepts every request, validates the token signature and expiration, and populates the \texttt{SecurityContext}.
     \item \texttt{@PreAuthorize} annotations on controller methods enforce role-based access.
 \end{enumerate}
 
 \section{CLASS DIAGRAM}
 
 \subsection{Core Entity Relationships}
-The main entities of the SIPMS domain model and their relationships are described below:
+The domain model consists of the following main entities with their attributes and relationships:
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|p{3cm}|p{4.5cm}|p{5.5cm}|}
+\small
+\begin{tabular}{|p{2.5cm}|p{4cm}|p{6.5cm}|}
 \hline
 \rowcolor{gray!20}
 \textbf{Entity} & \textbf{Key Attributes} & \textbf{Relationships} \\
 \hline
-\textbf{User} & id, firstName, lastName, email, passwordHash, specialty, internshipYear, status, active & ManyToMany $\rightarrow$ Role \\
+\textbf{User} & id, firstName, lastName, email, passwordHash, active, mustChangePassword, createdAt & ManyToMany $\rightarrow$ Role; OneToOne $\leftarrow$ Candidate (optional) \\
 \hline
-\textbf{Role} & id, name (ROLE\_ADMIN, etc.) & ManyToMany $\leftarrow$ User \\
+\textbf{Role} & id, name (ADMIN, MANAGER, RECEPTIONIST, CANDIDATE) & ManyToMany $\leftarrow$ User \\
 \hline
-\textbf{Application} & id, intakeMethod, status, managerNotes, createdAt & ManyToOne $\rightarrow$ User (candidate, registeredBy), Supervisor \\
+\textbf{Candidate} & id, firstName, lastName, email, phone, cin, createdAt & OneToOne $\rightarrow$ User (optional); OneToMany $\rightarrow$ InternshipFile \\
 \hline
-\textbf{Document} & id, fileName, filePath, fileType, fileSize, documentType & ManyToOne $\rightarrow$ Application, User \\
+\textbf{InternshipFile} & id, year, university, degree, skillsTags, createdAt & ManyToOne $\rightarrow$ Candidate; OneToMany $\rightarrow$ Document \\
 \hline
-\textbf{Quiz} & id, title, specialty, duration, active & OneToMany $\rightarrow$ QuizQuestion \\
+\textbf{Document} & id, fileName, filePath, fileType, fileSize, documentType, createdAt & ManyToOne $\rightarrow$ Application (optional); ManyToOne $\rightarrow$ InternshipFile (optional); ManyToOne $\rightarrow$ User (uploadedBy) \\
 \hline
-\textbf{QuizQuestion} & id, questionText, correctAnswer, options & ManyToOne $\rightarrow$ Quiz \\
+\textbf{Application} & id, intakeMethod, status, managerNotes, aiMatchScore, createdAt & ManyToOne $\rightarrow$ Candidate; ManyToOne $\rightarrow$ Project; ManyToOne $\rightarrow$ Supervisor; ManyToOne $\rightarrow$ User (registeredBy) \\
 \hline
-\textbf{QuizAttempt} & id, score, completedAt, answers & ManyToOne $\rightarrow$ User, Quiz \\
+\textbf{Supervisor} & id, fullName, email, department, expertiseTags, maxInterns, currentInterns, active & OneToOne $\rightarrow$ User; OneToMany $\leftarrow$ Application \\
 \hline
-\textbf{Supervisor} & id, firstName, lastName, specialty, currentInterns, active & OneToMany $\leftarrow$ Application \\
+\textbf{Project} & id, title, description, domain, technologyTags, aiScore, status & ManyToOne $\rightarrow$ User (submittedBy); ManyToOne $\rightarrow$ Supervisor \\
 \hline
-\textbf{Project} & id, title, description, status, company & ManyToOne $\rightarrow$ Supervisor \\
+\textbf{Quiz} & id, title, description, durationMins, passingScore, totalMarks, specialty, active & ManyToOne $\rightarrow$ User (createdBy); OneToMany $\rightarrow$ QuizQuestion \\
 \hline
-\textbf{Notification} & id, title, message, read, createdAt & ManyToOne $\rightarrow$ User \\
+\textbf{QuizQuestion} & id, questionText, optionA, optionB, optionC, optionD, correctOption, marks, orderIndex & ManyToOne $\rightarrow$ Quiz \\
+\hline
+\textbf{QuizAttempt} & id, score, totalMarks, percentage, passed, startedAt, completedAt & ManyToOne $\rightarrow$ Quiz; ManyToOne $\rightarrow$ Candidate; ManyToOne $\rightarrow$ Application; OneToMany $\rightarrow$ QuizAnswer \\
+\hline
+\textbf{Interview} & id, scheduledAt, interviewer, type, status, score, notes, feedback, createdAt & ManyToOne $\rightarrow$ Candidate; ManyToOne $\rightarrow$ Application \\
+\hline
+\textbf{Notification} & id, title, message, type, isRead, link, createdAt & ManyToOne $\rightarrow$ User \\
 \hline
 \end{tabular}
-\caption{Main entities and their relationships}
+\caption{Complete entity list with attributes and relationships}
 \end{table}
+
+\subsection{Relationship Diagram}
+The key relationships between entities are summarized as follows:
+
+\begin{verbatim}
+User *-- Role (ManyToMany)
+Candidate "1" --> "0..1" User (optional OneToOne)
+Candidate "1" *--> "0..*" InternshipFile (OneToMany)
+InternshipFile "1" *--> "0..*" Document (OneToMany)
+Application "1" --> "0..*" Document (OneToMany)
+Candidate "1" *--> "0..*" Application (OneToMany)
+Application "1" --> "0..1" Project (ManyToOne)
+Application "1" --> "0..1" Supervisor (ManyToOne)
+Supervisor "1" *--> "0..*" Project (OneToMany)
+Supervisor "1" --> "0..1" User (OneToOne)
+Quiz "1" *--> "0..*" QuizQuestion (OneToMany)
+Quiz "1" *--> "0..*" QuizAttempt (OneToMany)
+Candidate "1" *--> "0..*" QuizAttempt (OneToMany)
+Application "1" *--> "0..*" QuizAttempt (OneToMany)
+Candidate "1" *--> "0..*" Interview (OneToMany)
+Application "1" *--> "0..*" Interview (OneToMany)
+User "1" *--> "0..*" Quiz (createdBy)
+User "1" *--> "0..*" Notification (OneToMany)
+\end{verbatim}
 
 \begin{figure}[H]
     \centering
@@ -113,18 +144,19 @@ The main entities of the SIPMS domain model and their relationships are describe
 
 \section{SEQUENCE DIAGRAMS}
 
-\subsection{Sequence: Candidate Registration with Document Upload}
-This sequence describes the complete candidate registration flow performed by the receptionist:
+\subsection{Sequence: Candidate Registration with Internship File Upload}
+This sequence describes the complete candidate registration and document upload flow performed by the receptionist:
 
 \begin{enumerate}
-    \item Receptionist submits the registration form via the React frontend.
-    \item \texttt{POST /api/users} is called with candidate data including \texttt{internshipYear}.
-    \item \texttt{UserService.createUser()} generates a temporary password, encodes it with BCrypt, creates the user, assigns the ROLE\_CANDIDATE role, and saves to the database.
-    \item \texttt{EmailService.sendWelcomeEmail()} sends an asynchronous HTML email with credentials.
-    \item If files were selected, \texttt{POST /api/candidates/\{id\}/documents} is called with multipart form data.
-    \item \texttt{FileStorageService.storeFile()} saves each file to the local filesystem and returns a relative path.
-    \item A \texttt{Document} entity is persisted per uploaded file, linked to the candidate's physical application.
-    \item The frontend refreshes the candidates table with the new entry.
+    \item Receptionist fills the candidate form (firstName, lastName, email, phone, CIN) and submits via the React frontend.
+    \item \texttt{POST /api/candidates} is called with the candidate data as JSON.
+    \item \texttt{CandidateService.createCandidate()} saves the candidate to the database and returns the created record.
+    \item Receptionist then opens the internship file form and selects year, university, degree, skills tags, and optionally a PDF document.
+    \item \texttt{POST /api/candidates/\{id\}/internship-files/with-document} is called with multipart form data.
+    \item \texttt{FileStorageService.storeFile()} saves the document to \texttt{./uploads/candidates/\{id\}/} with a UUID-based filename.
+    \item An \texttt{InternshipFile} entity is persisted with the candidate relationship.
+    - If a file was uploaded, a \texttt{Document} entity is also persisted and linked to the \texttt{InternshipFile}.
+    \item The frontend refreshes the candidates table and internship files list.
 \end{enumerate}
 
 \begin{figure}[H]
@@ -133,24 +165,28 @@ This sequence describes the complete candidate registration flow performed by th
     \caption{Sequence diagram --- Candidate registration with document upload}
 \end{figure}
 
-\subsection{Sequence: Quiz Execution}
+\subsection{Sequence: Approve Candidate and Send Quiz}
 \begin{enumerate}
-    \item Candidate navigates to the Quiz page; frontend calls \texttt{GET /api/quizzes/\{id\}}.
-    \item Backend returns quiz metadata and questions (without correct answers).
-    \item Frontend renders questions with a countdown timer.
-    \item Candidate submits answers via \texttt{POST /api/quizzes/submit}.
-    \item \texttt{QuizService.submitQuiz()} compares submitted answers against stored correct answers and calculates the score.
-    \item Candidate's \texttt{status} is updated to \texttt{quiz\_completed} or \texttt{quiz\_failed} based on the passing threshold.
-    \item Score and completion timestamp are persisted in a \texttt{QuizAttempt} record.
+    \item Manager selects a candidate and clicks "Approve \& Send Quiz" in the Candidates page.
+    \item The \texttt{QuizSelectionModal} opens, loading existing quizzes from \texttt{GET /api/quizzes}.
+    \item Manager either selects an existing quiz or chooses to create a default 5-question quiz.
+    \item \texttt{POST /api/candidates/\{id\}/approve-and-send-quiz} is called with an optional \texttt{quizId}.
+    \item \texttt{CandidateService.approveAndSendQuiz()} performs the following:
+        a) Creates a \texttt{User} account for the candidate with a BCrypt-hashed temporary password.
+        b) If \texttt{quizId} is provided, creates a \texttt{QuizAttempt} linking the candidate to the existing quiz.
+        c) If no \texttt{quizId}, creates a new \texttt{Quiz} with 5 default MCQs, then creates the \texttt{QuizAttempt}.
+        d) Sends an HTML email via Gmail SMTP containing login credentials and the quiz title.
+    \item The frontend refreshes and displays the candidate with an active user account.
 \end{enumerate}
 
-\subsection{Sequence: AI-Powered Candidate Matching}
+\subsection{Sequence: Interview Scheduling}
 \begin{enumerate}
-    \item Manager triggers matching via \texttt{POST /api/ai/match-candidates/\{supervisorId\}}.
-    \item \texttt{AiService} retrieves all active supervisors and accepted candidates.
-    \item Each candidate is scored against the supervisor's specialty, current intern load, and quiz scores.
-    \item Results are ranked and persisted as \texttt{AiRanking} records.
-    \item Manager views the ranked list on the AI Insights dashboard.
+    \item Manager identifies a candidate whose application is in \texttt{QUIZ\_COMPLETED} or later status.
+    \item Manager clicks "Schedule Interview" and fills the form (date/time, interviewer name, type: TECHNICAL or HR).
+    \item \texttt{POST /api/interviews} is called with candidateId, applicationId, scheduledAt, interviewer, type.
+    \item \texttt{InterviewService.createInterview()} saves the interview with status \texttt{SCHEDULED}.
+    \item The interview appears in the interview management page.
+    \item After the interview, Manager records the result via \texttt{PUT /api/interviews/\{id\}/result} with score, notes, and feedback. Status is updated to \texttt{COMPLETED}.
 \end{enumerate}
 
 \section{DATABASE SCHEMA}
@@ -158,38 +194,57 @@ This sequence describes the complete candidate registration flow performed by th
 \subsection{Main Tables}
 \begin{table}[H]
 \centering
+\small
 \begin{tabular}{|p{3cm}|p{10cm}|}
 \hline
 \rowcolor{gray!20}
 \textbf{Table} & \textbf{Key Columns} \\
 \hline
-\texttt{users} & id, first\_name, last\_name, email, password\_hash, specialty, internship\_year, status, active, must\_change\_password, created\_at \\
+\texttt{users} & id, first\_name, last\_name, email, password\_hash, active, must\_change\_password, created\_at, updated\_at \\
 \hline
-\texttt{roles} & id, name \\
+\texttt{roles} & id, name (enum: ADMIN, MANAGER, RECEPTIONIST, CANDIDATE) \\
 \hline
 \texttt{user\_roles} & user\_id, role\_id \\
 \hline
-\texttt{applications} & id, candidate\_id, supervisor\_id, registered\_by, intake\_method, status, manager\_notes, created\_at \\
+\texttt{candidates} & id, first\_name, last\_name, email, phone, cin, user\_id (nullable FK), created\_at, updated\_at \\
 \hline
-\texttt{documents} & id, application\_id, uploaded\_by, file\_name, file\_path, file\_type, file\_size, document\_type, created\_at \\
+\texttt{internship\_files} & id, candidate\_id (FK), year, university, degree, skills\_tags, created\_at, updated\_at \\
 \hline
-\texttt{quizzes} & id, title, specialty, duration\_minutes, active, created\_at \\
+\texttt{documents} & id, application\_id (nullable FK), internship\_file\_id (nullable FK), uploaded\_by (FK), file\_name, file\_path, file\_type, file\_size, document\_type (enum), created\_at \\
 \hline
-\texttt{quiz\_questions} & id, quiz\_id, question\_text, options (JSON), correct\_answer, points \\
+\texttt{applications} & id, candidate\_id (FK), project\_id (FK), supervisor\_id (FK), registered\_by (FK), intake\_method (enum), status (enum), manager\_notes, decision\_date, ai\_match\_score, created\_at, updated\_at \\
 \hline
-\texttt{quiz\_attempts} & id, user\_id, quiz\_id, score, completed\_at, answers (JSON) \\
+\texttt{supervisors} & id, user\_id (FK), full\_name, email, department, expertise\_tags, max\_interns, current\_interns, active \\
 \hline
-\texttt{supervisors} & id, first\_name, last\_name, specialty, email, current\_interns, active \\
+\texttt{projects} & id, title, description, domain, technology\_tags, status (enum), ai\_score, submitted\_by (FK), supervisor\_id (FK) \\
 \hline
-\texttt{projects} & id, title, description, company, status, supervisor\_id, created\_at \\
+\texttt{quizzes} & id, title, description, duration\_mins, passing\_score, total\_marks, specialty, active, created\_by (FK), created\_at \\
 \hline
-\texttt{notifications} & id, user\_id, title, message, is\_read, created\_at \\
+\texttt{quiz\_questions} & id, quiz\_id (FK), question\_text, option\_a, option\_b, option\_c, option\_d, correct\_option, marks, order\_index \\
 \hline
-\texttt{ai\_rankings} & id, entity\_type, entity\_id, score, rank, created\_at \\
+\texttt{quiz\_attempts} & id, quiz\_id (FK), candidate\_id (FK), application\_id (FK), score, total\_marks, percentage, passed, started\_at, completed\_at \\
+\hline
+\texttt{quiz\_answers} & id, attempt\_id (FK), question\_id (FK), selected\_option, is\_correct \\
+\hline
+\texttt{interviews} & id, candidate\_id (FK), application\_id (FK), scheduled\_at, interviewer, type (enum), status (enum), score, notes, feedback, created\_at, updated\_at \\
+\hline
+\texttt{notifications} & id, user\_id (FK), title, message, type (enum), is\_read, link, created\_at \\
 \hline
 \end{tabular}
-\caption{SIPMS database table overview}
+\caption{Complete database schema}
 \end{table}
 
+\subsection{Schema Diagram}
+The relational schema follows the entity relationships described in Section 3.3. Foreign key constraints enforce referential integrity across all tables. Key design decisions include:
+
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item \textbf{Nullable foreign keys}: \texttt{documents.application\_id} and \texttt{documents.internship\_file\_id} are both nullable because a document can belong to either an application or an internship file, but not necessarily both.
+        \item \textbf{Optional User link}: \texttt{candidates.user\_id} is nullable because a candidate exists independently of a User account. The User is created only when the manager invites/approves the candidate.
+        \item \textbf{Enum types}: Status fields (application status, interview status, document type) are stored as MySQL ENUM types for data integrity.
+        \item \textbf{Audit timestamps}: All entities include \texttt{created\_at} and most include \texttt{updated\_at}, populated automatically via JPA's \texttt{@PrePersist} and \texttt{@PreUpdate} hooks.
+    \end{spacing}
+\end{itemize}
+
 \section{CONCLUSION}
-This chapter presented the complete technical design of SIPMS, covering the layered architecture, security model, entity relationships, key sequence diagrams, and database schema. These design decisions provide a solid blueprint for the implementation phase described in the next chapter.
+This chapter presented the complete technical design of SIPMS, covering the layered architecture, security model, all 16 entities with their relationships and attributes, four key sequence diagrams illustrating the main workflows, and the full database schema with 15 tables. These design decisions provide a solid blueprint for the implementation phase described in the next chapter.
