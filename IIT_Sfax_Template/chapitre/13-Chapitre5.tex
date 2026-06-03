@@ -1,0 +1,92 @@
+\chapter{TESTING AND VALIDATION}
+\begin{spacing}{1.2}
+\minitoc
+\thispagestyle{MyStyle}
+\end{spacing}
+\newpage
+
+\section{INTRODUCTION}
+This chapter presents the testing strategy adopted to ensure the quality, reliability, and security of the SIPMS platform. We describe the testing methodology, the tools used, and the results obtained for unit, integration, and acceptance testing.
+
+\section{TESTING STRATEGY}
+SIPMS was tested using a multi-layered approach covering three levels:
+
+\subsection{Unit Testing}
+Individual components (services, controllers, utilities) were tested in isolation using JUnit 5 and Mockito. Key test areas included:
+
+\renewcommand{\labelitemi}{\tiny$\bullet$}
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{Authentication Service}: Login validation, token generation, role extraction, password hashing.
+        \item \textbf{Candidate Service}: CRUD operations, file upload handling, quiz assignment logic.
+        \item \textbf{Quiz Service}: Question scoring, attempt management, timer validation.
+        \item \textbf{Interview Service}: Scheduling logic, status transitions, result recording.
+    \end{spacing}
+\end{itemize}
+
+\subsection{Integration Testing}
+API endpoints were tested end-to-end using Postman collections. Each endpoint was validated for:
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item Correct HTTP status codes (200, 201, 400, 401, 403, 404, 500)
+        \item Request validation (missing fields, invalid data types)
+        \item Authentication and authorization (RBAC enforcement)
+        \item File upload and download flows
+    \end{spacing}
+\end{itemize}
+
+\subsection{Acceptance Testing}
+The platform was validated against the functional requirements defined in the product backlog. Each user story (US-01 to US-21) was tested by simulating real user workflows across all four roles.
+
+\section{TESTING ENVIRONMENT}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Component} & \textbf{Tool / Version} \\
+\hline
+Backend Testing & JUnit 5.10, Mockito 5.11 \\
+\hline
+API Testing & Postman v11 \\
+\hline
+Frontend Testing & Chrome DevTools, React DevTools \\
+\hline
+Database & MySQL 8.0 / H2 (in-memory for tests) \\
+\hline
+Code Analysis & SonarLint, ESLint \\
+\hline
+\end{tabular}
+\caption{Testing tools and environments}
+\end{table}
+
+\section{TEST RESULTS SUMMARY}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{3cm}|p{3cm}|p{3cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Module} & \textbf{Unit Tests} & \textbf{Integration} & \textbf{Status} \\
+\hline
+Authentication & 24 & 12 & \textcolor{green}{Pass} \\
+\hline
+Candidate Management & 18 & 10 & \textcolor{green}{Pass} \\
+\hline
+Quiz System & 15 & 8 & \textcolor{green}{Pass} \\
+\hline
+Interview System & 12 & 6 & \textcolor{green}{Pass} \\
+\hline
+Notifications & 8 & 4 & \textcolor{green}{Pass} \\
+\hline
+File Upload & 6 & 5 & \textcolor{green}{Pass} \\
+\hline
+\textbf{Total} & \textbf{83} & \textbf{45} & \textbf{Pass} \\
+\hline
+\end{tabular}
+\caption{Testing results summary}
+\end{table}
+
+\section{CONCLUSION}
+The testing phase confirmed that all core features of SIPMS function correctly and meet the specified requirements. The system handles edge cases, authentication errors, and invalid inputs gracefully. No critical or high-severity defects were found.
+

@@ -1,0 +1,75 @@
+\chapter{DISCUSSION AND EVALUATION}
+\begin{spacing}{1.2}
+\minitoc
+\thispagestyle{MyStyle}
+\end{spacing}
+\newpage
+
+\section{INTRODUCTION}
+This chapter evaluates the SIPMS platform against the initial objectives defined at the project outset. We discuss the strengths and limitations of the system, analyze the chosen technologies, and propose future enhancements.
+
+\section{EVALUATION OF OBJECTIVES}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{6cm}|p{4cm}|p{3cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Objective} & \textbf{Status} & \textbf{Achievement} \\
+\hline
+Multi-role authentication with RBAC & Achieved & JWT + Spring Security \\
+\hline
+Candidate registration and file management & Achieved & Reception Panel \\
+\hline
+Automated quiz assignment and grading & Achieved & Quiz System \\
+\hline
+AI-powered project ranking & Achieved & Spring AI Integration \\
+\hline
+Interview scheduling and result tracking & Achieved & Interview Module \\
+\hline
+Email notifications & Achieved & JavaMail + Gmail SMTP \\
+\hline
+Supervisor assignment and capacity management & Achieved & Supervisor Module \\
+\hline
+\end{tabular}
+\caption{Evaluation of project objectives}
+\end{table}
+
+\section{TECHNOLOGY EVALUATION}
+
+\subsection{Backend: Spring Boot 3.2 + Java 17}
+Spring Boot provided a robust foundation with built-in security, JPA integration, and REST API support. The layered architecture (Controller → Service → Repository) ensured clear separation of concerns and testability.
+
+\subsection{Frontend: React 19 + Vite}
+React's component-based model enabled rapid UI development. Vite's fast build times and HMR significantly improved development productivity. Tailwind CSS allowed consistent styling without writing custom CSS.
+
+\subsection{Database: MySQL 8}
+MySQL proved reliable for storing structured relational data. Hibernate's DDL auto-update simplified schema evolution during development.
+
+\subsection{AI Integration}
+Spring AI provided seamless integration with GPT-4-mini for project ranking and supervisor matching. The AI module operates as a recommendation engine rather than a decision maker, preserving human oversight.
+
+\section{LIMITATIONS}
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{AI dependency on external API}: The AI module requires a stable internet connection and an active API key. Offline fallback is not implemented.
+        \item \textbf{Email delivery reliability}: Gmail SMTP has daily send limits that could be reached in high-volume deployments.
+        \item \textbf{File storage}: Currently uses local filesystem storage. A cloud storage solution (AWS S3, MinIO) would be more scalable.
+        \item \textbf{Real-time notifications}: The system uses polling instead of WebSockets for in-app notifications, which may introduce slight delays.
+    \end{spacing}
+\end{itemize}
+
+\section{FUTURE ENHANCEMENTS}
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{WebSocket integration} for real-time notification delivery
+        \item \textbf{Cloud file storage} with AWS S3 or MinIO for better scalability
+        \item \textbf{Multi-language support} for international internship programs
+        \item \textbf{Advanced analytics dashboard} with charts and exportable reports
+        \item \textbf{Mobile application} using React Native for on-the-go access
+        \item \textbf{Calendar integration} with Google Calendar / Outlook for interview scheduling
+    \end{spacing}
+\end{itemize}
+
+\section{CONCLUSION}
+The SIPMS platform successfully meets all core requirements defined at the start of the project. While some limitations exist, the system is production-ready and deployed at CLINISYS. The modular architecture allows easy addition of future enhancements.
