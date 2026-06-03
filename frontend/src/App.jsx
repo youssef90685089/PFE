@@ -27,7 +27,6 @@ import ReceptionPanel from './pages/dashboard/ReceptionPanel';
 import QuizInterface from './pages/dashboard/QuizInterface';
 import InterviewPage from './pages/dashboard/InterviewPage';
 import ProjectAssignmentPage from './pages/dashboard/ProjectAssignmentPage';
-import ActivityLogPage from './pages/dashboard/ActivityLogPage';
 
 export default function App() {
   return (
@@ -146,13 +145,6 @@ export default function App() {
               <Route path="project-assignment" element={
                 <ProtectedRoute roles={['ADMIN', 'MANAGER']}>
                   <ProjectAssignmentPage />
-                </ProtectedRoute>
-              } />
-
-              {/* Activity Log */}
-              <Route path="activity-log" element={
-                <ProtectedRoute roles={['ADMIN', 'MANAGER']}>
-                  <ActivityLogPage />
                 </ProtectedRoute>
               } />
 

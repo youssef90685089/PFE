@@ -193,11 +193,6 @@ export const interviewsApi = {
   delete:         (id)                        => api.delete(`/interviews/${id}`),
 };
 
-// ── Audit Logs API ─────────────────────────────────────────
-export const auditLogsApi = {
-  getAll: () => api.get('/audit-logs'),
-};
-
 // ── AI API ────────────────────────────────────────────────
 export const aiApi = {
   rankProjects: () => api.post('/ai/rank-projects'),
