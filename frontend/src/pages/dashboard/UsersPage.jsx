@@ -6,7 +6,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 import { Plus, Edit2, X, Search, Trash2 } from 'lucide-react';
 
-const ROLE_OPTIONS = ['ADMIN', 'MANAGER', 'RECEPTIONIST'];
+const ROLE_OPTIONS = ['ADMIN', 'MANAGER', 'RECEPTIONIST', 'CANDIDATE'];
 const STATUS_OPTIONS = [
   { label: 'Active', value: true },
   { label: 'Inactive', value: false },
@@ -385,9 +385,15 @@ export default function UsersPage() {
 
               <div>
                 <label className="block text-sm font-medium text-surface-700 mb-1.5">Role</label>
-                <div className="w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm bg-surface-50 text-surface-500">
-                  {selectedUser?.roles?.[0] || 'CANDIDATE'}
-                </div>
+                <select
+                  value={formData.roles[0] || 'CANDIDATE'}
+                  onChange={e => setFormData({ ...formData, roles: [e.target.value] })}
+                  className="w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                >
+                  {ROLE_OPTIONS.map(role => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
