@@ -146,6 +146,21 @@ User "1" --> "0..*" AiRanking (rankedBy)
     \caption{Simplified class diagram --- SIPMS core entities}
 \end{figure}
 
+\subsection{Entity Interaction and Call Flow}
+The class diagram defines the static structure, but the dynamic behavior is governed by how these entities call one another during runtime. The key interaction flows are as follows:
+
+\renewcommand{\labelitemi}{\tiny$\bullet$}
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{Authentication flow}: \texttt{User} $\rightarrow$ \texttt{Role} (via ManyToMany). The \texttt{JwtAuthenticationFilter} reads the authenticated \texttt{User}'s roles from the \texttt{SecurityContext} and enforces access via \texttt{@PreAuthorize} annotations on controller methods.
+        \item \textbf{Candidate registration flow}: \texttt{Frontend} $\rightarrow$ \texttt{CandidateController} $\rightarrow$ \texttt{CandidateService} $\rightarrow$ \texttt{CandidateRepository} saves a new \texttt{Candidate}. The optional \texttt{User} entity is NOT created at this stage — it is created later during the manager approval step (\texttt{approveAndSendQuiz()}), which establishes the OneToOne link from \texttt{Candidate} to \texttt{User}.
+        \item \textbf{Internship file upload flow}: \texttt{Frontend} $\rightarrow$ \texttt{CandidateController} $\rightarrow$ \texttt{CandidateService} $\rightarrow$ \texttt{InternshipFileRepository} saves the \texttt{InternshipFile} linked to the \texttt{Candidate}. If a document is attached, \texttt{FileStorageService} writes the file to disk, then a \texttt{Document} entity is created and added to the \texttt{InternshipFile}'s documents collection.
+        \item \textbf{Quiz assignment and evaluation flow}: \texttt{Manager} approves candidate $\rightarrow$ \texttt{CandidateService.approveAndSendQuiz()} $\rightarrow$ creates \texttt{User} (optional OneToOne), reads or creates \texttt{Quiz}, creates \texttt{QuizAttempt} linking \texttt{Candidate}, \texttt{Quiz}, and \texttt{Application}. When the candidate submits answers, \texttt{QuizService} grades them, persists \texttt{QuizAnswer} records, updates \texttt{QuizAttempt.score/percentage/passed}, and advances the \texttt{Application.status}.
+        \item \textbf{Interview scheduling flow}: \texttt{Manager} $\rightarrow$ \texttt{InterviewController} $\rightarrow$ \texttt{InterviewService} $\rightarrow$ saves \texttt{Interview} with references to \texttt{Candidate} and \texttt{Application}. When the result is recorded, \texttt{Interview.score}, \texttt{Interview.notes}, and \texttt{Interview.feedback} are updated, and the \texttt{Interview.status} transitions from \texttt{SCHEDULED} to \texttt{COMPLETED}.
+        \item \textbf{AI evaluation flow}: \texttt{Manager} triggers AI matching $\rightarrow$ \texttt{AiService} $\rightarrow$ reads \texttt{Candidate}'s skills (via \texttt{InternshipFile.skillsTags}), quiz performance (\texttt{QuizAttempt.percentage}), and project requirements (\texttt{Project.domain}, \texttt{Project.technologyTags}). The weighted score is computed and persisted as an \texttt{AiRanking} record linked to the \texttt{Supervisor}. The \texttt{Application.aiMatchScore} field is also updated for quick reference on the manager dashboard.
+    \end{spacing}
+\end{itemize}
+
 \subsection{AI Entities and Scoring Logic}
 The AI module introduces two specialized concepts that are embedded across multiple entities:
 
