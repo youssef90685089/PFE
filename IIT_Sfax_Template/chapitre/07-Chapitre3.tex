@@ -108,6 +108,8 @@ The domain model consists of the following main entities with their attributes a
 \hline
 \textbf{Notification} & id, title, message, type, isRead, link, createdAt & ManyToOne $\rightarrow$ User \\
 \hline
+\textbf{AiRanking} & id, rankingType (PROJECT\_RANK, CANDIDATE\_MATCH), referenceId, score (0.0--1.0), reasoning (AI explanation), createdAt & ManyToOne $\rightarrow$ Supervisor (optional); ManyToOne $\rightarrow$ User (rankedBy) \\
+\hline
 \end{tabular}
 \caption{Complete entity list with attributes and relationships}
 \end{table}
@@ -134,6 +136,8 @@ Candidate "1" *--> "0..*" Interview (OneToMany)
 Application "1" *--> "0..*" Interview (OneToMany)
 User "1" *--> "0..*" Quiz (createdBy)
 User "1" *--> "0..*" Notification (OneToMany)
+Supervisor "1" --> "0..*" AiRanking (OneToMany)
+User "1" --> "0..*" AiRanking (rankedBy)
 \end{verbatim}
 
 \begin{figure}[H]
@@ -141,6 +145,49 @@ User "1" *--> "0..*" Notification (OneToMany)
     \fbox{\includegraphics[width=14cm]{images/TemplateImages/Image-Exemple.jpg}}
     \caption{Simplified class diagram --- SIPMS core entities}
 \end{figure}
+
+\subsection{AI Entities and Scoring Logic}
+The AI module introduces two specialized concepts that are embedded across multiple entities:
+
+\subsubsection{AI Scoring Fields}
+AI-generated scores are stored directly on existing entities to avoid joins and simplify queries:
+
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{Application.aiMatchScore} (Double): A value between 0.0 and 1.0 representing the AI's confidence that the candidate is a good fit for the assigned project. Calculated by analyzing the candidate's quiz score (\texttt{QuizAttempt.percentage}), skills tags (\texttt{InternshipFile.skillsTags}), and degree level against the project's domain and technology requirements.
+        \item \textbf{Project.aiScore} (Double): A value between 0.0 and 1.0 representing the overall quality and relevance score of a project proposal. Calculated based on description completeness, domain alignment with company priorities, and the submitting candidate's profile strength.
+    \end{spacing}
+\end{itemize}
+
+\subsubsection{AiRanking Entity}
+The \texttt{AiRanking} entity stores the output of AI-based ranking operations:
+
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{rankingType}: An enum with two values — \texttt{PROJECT\_RANK} (ranks projects by relevance for a given candidate) and \texttt{CANDIDATE\_MATCH} (ranks candidates by suitability for a given supervisor).
+        \item \textbf{referenceId}: The ID of the ranked entity (project ID for PROJECT\_RANK, candidate ID for CANDIDATE\_MATCH).
+        \item \textbf{score}: A Double between 0.0 and 1.0 representing the AI's confidence score.
+        \item \textbf{reasoning}: A free-text field containing the AI's natural language explanation of the score. Example: \textit{"Candidate has strong Java and Spring Boot skills matching the supervisor's expertise. Quiz score of 85\% indicates solid technical foundation."}
+        \item \textbf{supervisor}: Optional ManyToOne to Supervisor. Present only when the ranking is a CANDIDATE\_MATCH targeting a specific supervisor.
+        \item \textbf{rankedBy}: The User (Admin/Manager) who triggered the AI evaluation.
+    \end{spacing}
+\end{itemize}
+
+\subsubsection{AI Scoring Algorithm}
+The AI scoring follows a weighted formula:
+
+\begin{verbatim}
+AI Match Score = w1 × skillOverlap + w2 × quizPerformance + w3 × academicLevel
+
+Where:
+  skillOverlap    = |candidateSkills ∩ projectSkills| / |projectSkills|
+  quizPerformance = QuizAttempt.percentage / 100
+  academicLevel   = degreeLevel / maxDegreeLevel
+
+Default weights: w1=0.40, w2=0.40, w3=0.20
+\end{verbatim}
+
+These scores are computed by the \texttt{AiService} which delegates to the configured AI provider (GPT-4-mini) for the reasoning generation, while the numerical scoring uses deterministic formulas for consistency and reproducibility.
 
 \section{SEQUENCE DIAGRAMS}
 
