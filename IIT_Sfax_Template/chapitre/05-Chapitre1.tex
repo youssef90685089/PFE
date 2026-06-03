@@ -112,7 +112,7 @@ AI Module & Custom scoring engine & Project ranking, candidate matching \\
 We adopted the \textbf{Scrum} agile framework for this project. This choice is justified by the iterative nature of the requirements, the need to deliver functional increments regularly, and the flexibility required to accommodate changes during development.
 
 \subsection{Scrum Framework}
-Scrum organizes development into short iterations called \textbf{Sprints}, typically lasting two to three weeks. Each sprint produces a potentially shippable product increment. The key Scrum artifacts used in this project are:
+Scrum organizes development into short iterations called \textbf{Sprints}, each lasting two to three weeks. Every sprint produces a potentially shippable product increment. The key Scrum artifacts used in this project are:
 
 \begin{itemize}[leftmargin=2cm, topsep=0pt]
     \begin{spacing}{1.25}
@@ -122,23 +122,62 @@ Scrum organizes development into short iterations called \textbf{Sprints}, typic
     \end{spacing}
 \end{itemize}
 
+\subsection{Sprint Goals}
+Each sprint was driven by a clearly defined goal that aligned with the overall project roadmap:
+
+\renewcommand{\labelitemi}{\tiny$\bullet$}
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{Sprint 1 — Authentication \& User Management}: Establish a secure access layer with role-based dashboards. Goal: enable login/logout with JWT, enforce RBAC, and provide personalized dashboards for Admin, Manager, Receptionist, and Candidate roles.
+        \item \textbf{Sprint 2 — Reception Module}: Digitize the physical candidate registration process. Goal: allow receptionists to register candidates, upload documents, filter by year, and send automated welcome emails.
+        \item \textbf{Sprint 3 — Quiz Module}: Implement objective technical evaluation. Goal: enable managers to create and assign quizzes, candidates to take timed quizzes, and the system to auto-correct and score results.
+        \item \textbf{Sprint 4 — AI \& Assignment Module}: Enhance decision-making with artificial intelligence. Goal: rank submitted projects using AI, match candidates to supervisors, and finalize the assignment workflow.
+    \end{spacing}
+\end{itemize}
+
+\subsection{Validation per Sprint}
+At the end of each sprint, the delivered increment was validated through a structured process to ensure quality and alignment with requirements:
+
+\renewcommand{\labelitemi}{\tiny$\bullet$}
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{Sprint Review (Demo)}: A live demonstration of the working software was presented to the project supervisor and CLINISYS stakeholders. Each user story completed during the sprint was executed in real time to confirm functionality.
+        \item \textbf{Acceptance Criteria Verification}: Every backlog item was checked against its predefined acceptance criteria. Only items meeting all criteria were marked as "Done."
+        \item \textbf{Integration Testing}: All new endpoints and features were tested against the existing system to detect regressions. Postman collections were executed to verify API contracts.
+        \item \textbf{Sprint Retrospective}: The team reflected on the sprint process — what went well, what could be improved — and identified actionable improvements for the next sprint.
+    \end{spacing}
+\end{itemize}
+
+\subsection{Feedback Loop}
+A continuous feedback mechanism was embedded throughout the development lifecycle:
+
+\renewcommand{\labelitemi}{\tiny$\bullet$}
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{Stakeholder demos}: At each sprint review, stakeholders interacted with the live system and provided direct feedback. This early and frequent exposure allowed the team to correct misunderstandings and adjust priorities before investing further effort.
+        \item \textbf{Backlog refinement}: Feedback from each sprint was used to update and re-prioritize the Product Backlog. New requirements emerged during demos were added as new user stories, while lower-priority items were deferred.
+        \item \textbf{Adaptive planning}: The Sprint Backlog for each iteration was adjusted based on lessons learned from the previous sprint. For example, the document upload feature was moved from Sprint 3 to Sprint 2 after stakeholders emphasized its importance during the Sprint 1 review.
+        \item \textbf{Quality gates}: Automated tests and manual verification checkpoints prevented defects from accumulating. Any issue discovered during validation was logged as a bug in the backlog and scheduled for the next sprint.
+    \end{spacing}
+\end{itemize}
+
 \begin{table}[H]
 \centering
-\begin{tabular}{|c|p{4.5cm}|p{6.5cm}|}
+\begin{tabular}{|c|p{3.5cm}|p{4.5cm}|p{3.5cm}|}
 \hline
 \rowcolor{gray!20}
-\textbf{Sprint} & \textbf{Main Objective} & \textbf{Delivered Features} \\
+\textbf{Sprint} & \textbf{Main Objective} & \textbf{Delivered Features} & \textbf{Validation} \\
 \hline
-Sprint 1 & Authentication \& User Management & JWT login, RBAC, role management, base dashboards, change password \\
+Sprint 1 & Authentication \& User Management & JWT login, RBAC, role management, base dashboards, change password & Stakeholder demo + Postman API tests \\
 \hline
-Sprint 2 & Reception Module & Candidate registration, year filtering, document upload, automated welcome email \\
+Sprint 2 & Reception Module & Candidate registration, year filtering, document upload, automated welcome email & Live receptionist workflow demo \\
 \hline
-Sprint 3 & Quiz Module & Quiz creation, candidate assignment, quiz interface, scoring, results \\
+Sprint 3 & Quiz Module & Quiz creation, candidate assignment, quiz interface, scoring, results & End-to-end quiz simulation with mock candidate \\
 \hline
-Sprint 4 & AI \& Assignment Module & Project ranking, candidate/supervisor matching, final assignment workflow \\
+Sprint 4 & AI \& Assignment Module & Project ranking, candidate/supervisor matching, final assignment workflow & Supervisor assignment validation with sample data \\
 \hline
 \end{tabular}
-\caption{SIPMS sprint planning}
+\caption{SIPMS sprint planning with validation}
 \end{table}
 
 \section{CONCLUSION}
