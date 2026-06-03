@@ -151,7 +151,8 @@ public class CandidateService {
                     .fileSize(file.getSize())
                     .documentType(Document.DocumentType.OTHER)
                     .build();
-            documentRepository.save(doc);
+            doc = documentRepository.save(doc);
+            internshipFile.getDocuments().add(doc);
         }
 
         return toFileDto(internshipFile);
@@ -303,6 +304,9 @@ public class CandidateService {
                 .skillsTags(f.getSkillsTags())
                 .documentFileNames(f.getDocuments().stream()
                         .map(d -> d.getFileName())
+                        .collect(Collectors.toList()))
+                .documentFilePaths(f.getDocuments().stream()
+                        .map(d -> d.getFilePath())
                         .collect(Collectors.toList()))
                 .createdAt(f.getCreatedAt())
                 .build();

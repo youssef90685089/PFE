@@ -4,16 +4,14 @@ import { useAuth } from '../../context/AuthContext';
 import { candidatesApi, quizzesApi } from '../../api/axios';
 import DataTable from '../../components/ui/DataTable';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import ManagerCreateCandidateModal from '../../components/ManagerCreateCandidateModal';
 import QuizSelectionModal from '../../components/QuizSelectionModal';
-import { Send, UserCheck, Plus, FileText } from 'lucide-react';
+import { Send, UserCheck, FileText } from 'lucide-react';
 
 export default function CandidatesPage() {
   const { user } = useAuth();
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inviting, setInviting] = useState(null);
-  const [isManagerModalOpen, setIsManagerModalOpen] = useState(false);
   const [quizModal, setQuizModal] = useState(null); // candidate object when selecting quiz
 
   const isManager = user?.roles?.includes('ROLE_MANAGER') || user?.roles?.includes('MANAGER');
@@ -120,29 +118,11 @@ export default function CandidatesPage() {
           <h1 className="text-2xl font-bold text-surface-900">Candidates</h1>
           <p className="text-surface-500 mt-1">{candidates.length} registered candidates</p>
         </div>
-        <div className="flex gap-2">
-          {canInvite && (
-            <button
-              onClick={() => setIsManagerModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-all shadow-sm"
-              title="Create new candidate and immediately send quiz"
-            >
-              <Plus className="h-4 w-4" />
-              New Candidate & Quiz
-            </button>
-          )}
-        </div>
       </div>
       <DataTable
         columns={columns}
         data={candidates}
         searchPlaceholder="Search candidates..."
-      />
-
-      <ManagerCreateCandidateModal
-        isOpen={isManagerModalOpen}
-        onClose={() => setIsManagerModalOpen(false)}
-        onSuccess={() => loadCandidates()}
       />
 
       {quizModal && (

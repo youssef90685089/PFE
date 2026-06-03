@@ -419,7 +419,15 @@ export default function ReceptionPanel() {
                       </td>
                       <td className="px-4 py-4">
                         {f.documentFileNames?.length > 0 ? (
-                          <span className="text-xs text-blue-600">{f.documentFileNames.length} file(s)</span>
+                          <div className="flex flex-wrap gap-1">
+                            {f.documentFileNames.map((n, idx) => (
+                              <a key={idx} href={`/uploads/${f.documentFilePaths?.[idx]}`}
+                                target="_blank" rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:text-blue-800 hover:underline">
+                                {n}
+                              </a>
+                            ))}
+                          </div>
                         ) : <span className="text-slate-300">—</span>}
                       </td>
                     </tr>
@@ -646,9 +654,12 @@ export default function ReceptionPanel() {
                         {f.documentFileNames?.length > 0 && (
                           <div className="mt-2 space-y-1">
                             {f.documentFileNames.map((docName, idx) => (
-                              <p key={idx} className="text-xs text-blue-600 flex items-center gap-1">
+                              <a key={idx}
+                                href={f.documentFilePaths?.[idx] ? `/uploads/${f.documentFilePaths[idx]}` : '#'}
+                                target="_blank" rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1">
                                 📄 {docName}
-                              </p>
+                              </a>
                             ))}
                           </div>
                         )}

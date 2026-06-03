@@ -16,5 +16,6 @@ public class InternshipFileDto {
     private String degree;
     private String skillsTags;
     private List<String> documentFileNames;
+    private List<String> documentFilePaths;
     private LocalDateTime createdAt;
 }
