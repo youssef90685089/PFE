@@ -1,5 +1,6 @@
 package com.project.sipms.service;
 
+import com.project.sipms.common.AuditService;
 import com.project.sipms.common.BusinessException;
 import com.project.sipms.common.ResourceNotFoundException;
 import com.project.sipms.dto.UserDto;
@@ -26,13 +27,16 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final AuditService auditService;
 
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
-                       PasswordEncoder passwordEncoder, EmailService emailService) {
+                       PasswordEncoder passwordEncoder, EmailService emailService,
+                       AuditService auditService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.auditService = auditService;
     }
 
     // ── READ ──────────────────────────────────────────────────────────────
@@ -102,6 +106,8 @@ public class UserService {
                 .build();
 
         user = userRepository.save(user);
+        auditService.log("CREATE_USER", "USER", user.getId(),
+                "Created user: " + user.getEmail() + " roles: " + roleNames);
 
         // Return the raw password in the response so admin can share it manually
         UserDto result = toDto(user);
@@ -175,7 +181,10 @@ public class UserService {
             user.setMustChangePassword(false);
         }
 
-        return toDto(userRepository.save(user));
+        UserDto result = toDto(userRepository.save(user));
+        auditService.log("UPDATE_USER", "USER", id,
+                "Updated user: " + user.getEmail());
+        return result;
     }
 
     // ── TOGGLE ACTIVE ─────────────────────────────────────────────────────
@@ -185,17 +194,21 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
         user.setActive(!user.isActive());
-        return toDto(userRepository.save(user));
+        UserDto result = toDto(userRepository.save(user));
+        auditService.log("TOGGLE_USER_ACTIVE", "USER", id,
+                "User " + user.getEmail() + " active=" + user.isActive());
+        return result;
     }
 
     // ── DELETE ────────────────────────────────────────────────────────────
 
     @Transactional
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException("User", id);
-        }
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", id));
         userRepository.deleteById(id);
+        auditService.log("DELETE_USER", "USER", id,
+                "Deleted user: " + user.getEmail());
     }
 
     // ── HELPERS ───────────────────────────────────────────────────────────

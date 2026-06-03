@@ -1,5 +1,6 @@
 package com.project.sipms.service;
 
+import com.project.sipms.common.AuditService;
 import com.project.sipms.common.BusinessException;
 import com.project.sipms.common.ResourceNotFoundException;
 import com.project.sipms.dto.CreateInterviewRequest;
@@ -20,10 +21,13 @@ public class InterviewService {
 
     private final InterviewRepository interviewRepository;
     private final CandidateRepository candidateRepository;
+    private final AuditService auditService;
 
-    public InterviewService(InterviewRepository interviewRepository, CandidateRepository candidateRepository) {
+    public InterviewService(InterviewRepository interviewRepository, CandidateRepository candidateRepository,
+                            AuditService auditService) {
         this.interviewRepository = interviewRepository;
         this.candidateRepository = candidateRepository;
+        this.auditService = auditService;
     }
 
     @Transactional(readOnly = true)
@@ -61,6 +65,8 @@ public class InterviewService {
                 .build();
 
         interview = interviewRepository.save(interview);
+        auditService.log("SCHEDULE_INTERVIEW", "INTERVIEW", interview.getId(),
+                "Interview scheduled for candidate " + req.getCandidateId() + " by " + req.getInterviewer());
         return toDto(interview);
     }
 
@@ -75,6 +81,8 @@ public class InterviewService {
         if (req.getStatus() != null) interview.setStatus(req.getStatus());
 
         interview = interviewRepository.save(interview);
+        auditService.log("UPDATE_INTERVIEW_RESULT", "INTERVIEW", interviewId,
+                "Interview result updated, status: " + req.getStatus());
         return toDto(interview);
     }
 
@@ -84,6 +92,8 @@ public class InterviewService {
             throw new ResourceNotFoundException("Interview", id);
         }
         interviewRepository.deleteById(id);
+        auditService.log("DELETE_INTERVIEW", "INTERVIEW", id,
+                "Deleted interview");
     }
 
     private InterviewDto toDto(Interview i) {

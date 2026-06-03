@@ -1,5 +1,6 @@
 package com.project.sipms.service;
 
+import com.project.sipms.common.AuditService;
 import com.project.sipms.common.ResourceNotFoundException;
 import com.project.sipms.common.BusinessException;
 import com.project.sipms.dto.SupervisorDto;
@@ -15,9 +16,11 @@ import java.util.stream.Collectors;
 public class SupervisorService {
 
     private final SupervisorRepository supervisorRepository;
+    private final AuditService auditService;
 
-    public SupervisorService(SupervisorRepository supervisorRepository) {
+    public SupervisorService(SupervisorRepository supervisorRepository, AuditService auditService) {
         this.supervisorRepository = supervisorRepository;
+        this.auditService = auditService;
     }
 
     public List<SupervisorDto> getAllSupervisors() {
@@ -63,7 +66,10 @@ public class SupervisorService {
                 .bio(dto.getBio())
                 .active(true)  // Default to active
                 .build();
-        return toDto(supervisorRepository.save(supervisor));
+        SupervisorDto result = toDto(supervisorRepository.save(supervisor));
+        auditService.log("CREATE_SUPERVISOR", "SUPERVISOR", result.getId(),
+                "Created supervisor: " + result.getEmail());
+        return result;
     }
 
     @Transactional
@@ -85,15 +91,20 @@ public class SupervisorService {
         if (dto.getBio() != null) s.setBio(dto.getBio());
         if (dto.getMaxInterns() > 0) s.setMaxInterns(dto.getMaxInterns());
         
-        return toDto(supervisorRepository.save(s));
+        SupervisorDto result = toDto(supervisorRepository.save(s));
+        auditService.log("UPDATE_SUPERVISOR", "SUPERVISOR", id,
+                "Updated supervisor: " + result.getEmail());
+        return result;
     }
 
     @Transactional
     public void deleteSupervisor(Long id) {
-        if (!supervisorRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Supervisor", id);
-        }
+        Supervisor supervisor = supervisorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Supervisor", id));
+        String email = supervisor.getEmail();
         supervisorRepository.deleteById(id);
+        auditService.log("DELETE_SUPERVISOR", "SUPERVISOR", id,
+                "Deleted supervisor: " + email);
     }
 
     public SupervisorDto toDto(Supervisor s) {

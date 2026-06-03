@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, FileText, FolderKanban, GraduationCap,
   Brain, Bell, Settings, ClipboardCheck, UserCheck, LogOut, ChevronLeft, ChevronRight, Upload,
-  CalendarDays, Briefcase
+  CalendarDays, Briefcase, History
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -12,6 +12,7 @@ const NAV_ITEMS = {
     { to: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
     { to: '/dashboard/users', icon: Users, label: 'Users' },
     { to: '/dashboard/supervisors', icon: UserCheck, label: 'Supervisors' },
+    { to: '/dashboard/activity-log', icon: History, label: 'Activity Log' },
     { to: '/dashboard/notifications', icon: Bell, label: 'Notifications' },
     { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ],
@@ -21,6 +22,7 @@ const NAV_ITEMS = {
     { to: '/dashboard/quizzes', icon: ClipboardCheck, label: 'Quizzes' },
     { to: '/dashboard/interviews', icon: CalendarDays, label: 'Schedule Interview' },
     { to: '/dashboard/project-assignment', icon: Briefcase, label: 'Assign Project' },
+    { to: '/dashboard/activity-log', icon: History, label: 'Activity Log' },
     { to: '/dashboard/notifications', icon: Bell, label: 'Notifications' },
     { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ],

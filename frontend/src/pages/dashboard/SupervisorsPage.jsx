@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { supervisorsApi } from '../../api/axios';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import ConfirmModal from '../../components/ui/ConfirmModal';
 import { Plus, Edit2, X, Trash2, Search } from 'lucide-react';
 
 const STATUS_OPTIONS = [
@@ -24,6 +25,7 @@ export default function SupervisorsPage() {
     active: true,
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => { load(); }, []);
 
@@ -64,6 +66,8 @@ export default function SupervisorsPage() {
       toast.success('Supervisor deleted successfully');
     } catch (error) {
       toast.error('Failed to delete supervisor. Please try again.');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -246,7 +250,7 @@ export default function SupervisorsPage() {
                         <button
                           onClick={e => {
                             e.stopPropagation();
-                            handleDeleteSupervisor(supervisor.id);
+                            setDeleteTarget(supervisor);
                           }}
                           className="rounded-lg px-3 py-1 text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                         >
@@ -463,6 +467,15 @@ export default function SupervisorsPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete Supervisor"
+          message={`Are you sure you want to delete ${deleteTarget.fullName}? This action cannot be undone.`}
+          onConfirm={() => handleDeleteSupervisor(deleteTarget.id)}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
     </>
   );

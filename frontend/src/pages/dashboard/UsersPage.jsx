@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { usersApi } from '../../api/axios';
 import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import ConfirmModal from '../../components/ui/ConfirmModal';
 import { Plus, Edit2, X, Search, Trash2 } from 'lucide-react';
 
 const ROLE_OPTIONS = ['ADMIN', 'MANAGER', 'RECEPTIONIST'];
@@ -20,6 +21,7 @@ export default function UsersPage() {
   const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', roles: ['CANDIDATE'], active: true });
   const [searchQuery, setSearchQuery] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => { load(); }, []);
 
@@ -48,6 +50,8 @@ export default function UsersPage() {
       toast.success('User deleted successfully');
     } catch (error) {
       toast.error('Failed to delete user. Please try again.');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -74,7 +78,6 @@ export default function UsersPage() {
         firstName: u.firstName || '',
         lastName: u.lastName || '',
         email: u.email || '',
-        password: '',
         roles: u.roles || ['CANDIDATE'],
         active: u.active ?? true,
       });
@@ -123,8 +126,6 @@ export default function UsersPage() {
     }
     setSubmitting(true);
     const payload = { ...formData };
-    // If password is empty, don't send it (no change intended)
-    if (!payload.password) delete payload.password;
     const updatedData = { ...payload, id: selectedUser.id };
     try {
       await usersApi.update(selectedUser.id, payload);
@@ -159,7 +160,7 @@ export default function UsersPage() {
             <Edit2 className="h-3 w-3" />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); handleDeleteUser(r.id); }}
+              onClick={(e) => { e.stopPropagation(); setDeleteTarget(r); }}
             className="rounded-lg px-3 py-1 text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
           >
             <Trash2 className="h-3 w-3" />
@@ -383,27 +384,10 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-1.5">New Password</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={e => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="Leave blank to keep current password"
-                  className="w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-                />
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium text-surface-700 mb-1.5">Role</label>
-                <select
-                  value={formData.roles[0] || 'CANDIDATE'}
-                  onChange={e => setFormData({ ...formData, roles: [e.target.value] })}
-                  className="w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-                >
-                  {ROLE_OPTIONS.map(role => (
-                    <option key={role} value={role}>{role}</option>
-                  ))}
-                </select>
+                <div className="w-full rounded-xl border border-surface-200 px-4 py-2.5 text-sm bg-surface-50 text-surface-500">
+                  {selectedUser?.roles?.[0] || 'CANDIDATE'}
+                </div>
               </div>
 
               <div>
@@ -439,6 +423,15 @@ export default function UsersPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete User"
+          message={`Are you sure you want to delete ${deleteTarget.firstName} ${deleteTarget.lastName}? This action cannot be undone.`}
+          onConfirm={() => handleDeleteUser(deleteTarget.id)}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
     </>
   );

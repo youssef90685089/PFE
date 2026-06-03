@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { candidatesApi } from '../../api/axios';
+import ConfirmModal from '../../components/ui/ConfirmModal';
 import {
   Users, UserPlus, Search, Filter, X, CheckCircle,
   Clock, Briefcase, Mail, Phone,
@@ -50,6 +51,8 @@ export default function ReceptionPanel() {
   const [showFilesModal, setShowFilesModal] = useState(false);
   const [selectedCandidateFiles, setSelectedCandidateFiles] = useState(null);
   const [filesLoading, setFilesLoading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteFileTarget, setDeleteFileTarget] = useState(null);
 
   useEffect(() => { fetchCandidates(); }, []);
 
@@ -153,6 +156,8 @@ export default function ReceptionPanel() {
       fetchCandidates();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Delete failed');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -184,7 +189,6 @@ export default function ReceptionPanel() {
 
   // ── Delete Internship File ───────────────────────────────
   const handleDeleteFile = async (fileId) => {
-    if (!window.confirm('Delete this internship file?')) return;
     try {
       await candidatesApi.deleteInternshipFile(fileId);
       toast.success('File deleted');
@@ -193,6 +197,8 @@ export default function ReceptionPanel() {
       }
     } catch (err) {
       toast.error('Failed to delete file');
+    } finally {
+      setDeleteFileTarget(null);
     }
   };
 
@@ -344,7 +350,7 @@ export default function ReceptionPanel() {
                           <Plus className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(c.id)}
+                          onClick={() => setDeleteTarget(c)}
                           className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"
                           title="Delete candidate"
                         >
@@ -665,7 +671,7 @@ export default function ReceptionPanel() {
                         )}
                       </div>
                       <button
-                        onClick={() => handleDeleteFile(f.id)}
+                        onClick={() => setDeleteFileTarget(f.id)}
                         className="p-2 rounded-lg hover:bg-red-50 text-red-500 transition-colors shrink-0"
                         title="Delete file"
                       >
@@ -699,6 +705,24 @@ export default function ReceptionPanel() {
             </div>
           </div>
         </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmModal
+          title="Delete Candidate"
+          message={`Are you sure you want to delete ${deleteTarget.firstName} ${deleteTarget.lastName}? Their internship files will also be removed.`}
+          onConfirm={() => handleDelete(deleteTarget.id)}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {deleteFileTarget && (
+        <ConfirmModal
+          title="Delete Internship File"
+          message="Are you sure you want to delete this internship file? This action cannot be undone."
+          onConfirm={() => handleDeleteFile(deleteFileTarget)}
+          onCancel={() => setDeleteFileTarget(null)}
+        />
       )}
     </div>
   );

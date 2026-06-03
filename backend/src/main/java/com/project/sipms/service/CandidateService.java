@@ -1,5 +1,6 @@
 package com.project.sipms.service;
 
+import com.project.sipms.common.AuditService;
 import com.project.sipms.common.BusinessException;
 import com.project.sipms.common.FileStorageService;
 import com.project.sipms.common.ResourceNotFoundException;
@@ -29,6 +30,7 @@ public class CandidateService {
     private final QuizQuestionRepository quizQuestionRepository;
     private final DocumentRepository documentRepository;
     private final FileStorageService fileStorageService;
+    private final AuditService auditService;
 
     public CandidateService(CandidateRepository candidateRepository,
                             InternshipFileRepository internshipFileRepository,
@@ -39,7 +41,8 @@ public class CandidateService {
                             QuizRepository quizRepository,
                             QuizQuestionRepository quizQuestionRepository,
                             DocumentRepository documentRepository,
-                            FileStorageService fileStorageService) {
+                            FileStorageService fileStorageService,
+                            AuditService auditService) {
         this.candidateRepository = candidateRepository;
         this.internshipFileRepository = internshipFileRepository;
         this.userRepository = userRepository;
@@ -50,6 +53,7 @@ public class CandidateService {
         this.quizQuestionRepository = quizQuestionRepository;
         this.documentRepository = documentRepository;
         this.fileStorageService = fileStorageService;
+        this.auditService = auditService;
     }
 
     // ── Candidate CRUD ─────────────────────────────────────────────────
@@ -69,6 +73,8 @@ public class CandidateService {
                 .build();
 
         candidate = candidateRepository.save(candidate);
+        auditService.log("CREATE_CANDIDATE", "CANDIDATE", candidate.getId(),
+                "Created candidate: " + candidate.getEmail());
         return toDto(candidate);
     }
 
@@ -87,10 +93,12 @@ public class CandidateService {
 
     @Transactional
     public void deleteCandidate(Long id) {
-        if (!candidateRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Candidate", id);
-        }
+        Candidate candidate = candidateRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Candidate", id));
+        String email = candidate.getEmail();
         candidateRepository.deleteById(id);
+        auditService.log("DELETE_CANDIDATE", "CANDIDATE", id,
+                "Deleted candidate: " + email);
     }
 
     // ── Internship Files ───────────────────────────────────────────────
@@ -109,6 +117,8 @@ public class CandidateService {
                 .build();
 
         file = internshipFileRepository.save(file);
+        auditService.log("ADD_INTERNSHIP_FILE", "INTERNSHIP_FILE", file.getId(),
+                "Added internship file for candidate " + candidateId);
         return toFileDto(file);
     }
 
@@ -125,6 +135,8 @@ public class CandidateService {
             throw new ResourceNotFoundException("InternshipFile", fileId);
         }
         internshipFileRepository.deleteById(fileId);
+        auditService.log("DELETE_INTERNSHIP_FILE", "INTERNSHIP_FILE", fileId,
+                "Deleted internship file");
     }
 
     @Transactional
@@ -155,6 +167,8 @@ public class CandidateService {
             internshipFile.getDocuments().add(doc);
         }
 
+        auditService.log("ADD_INTERNSHIP_FILE_WITH_DOC", "INTERNSHIP_FILE", internshipFile.getId(),
+                "Added internship file with document for candidate " + candidateId);
         return toFileDto(internshipFile);
     }
 
@@ -245,6 +259,8 @@ public class CandidateService {
             quizQuestionRepository.saveAll(quiz.getQuestions());
         }
 
+        auditService.log("APPROVE_CANDIDATE", "CANDIDATE", candidateId,
+                "Approved candidate " + candidate.getEmail() + " -> user " + user.getId() + " quiz: " + quizTitle);
         // 5. Send welcome email
         try {
             emailService.sendCandidateWelcomeEmail(

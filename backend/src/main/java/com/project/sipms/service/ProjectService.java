@@ -1,5 +1,6 @@
 package com.project.sipms.service;
 
+import com.project.sipms.common.AuditService;
 import com.project.sipms.common.ResourceNotFoundException;
 import com.project.sipms.dto.ProjectDto;
 import com.project.sipms.entity.Project;
@@ -20,13 +21,16 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final SupervisorRepository supervisorRepository;
+    private final AuditService auditService;
 
     public ProjectService(ProjectRepository projectRepository,
                           UserRepository userRepository,
-                          SupervisorRepository supervisorRepository) {
+                          SupervisorRepository supervisorRepository,
+                          AuditService auditService) {
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
         this.supervisorRepository = supervisorRepository;
+        this.auditService = auditService;
     }
 
     public List<ProjectDto> getAllProjects() {
@@ -57,7 +61,10 @@ public class ProjectService {
                 .status(Project.ProjectStatus.SUBMITTED)
                 .build();
 
-        return toDto(projectRepository.save(project));
+        ProjectDto result = toDto(projectRepository.save(project));
+        auditService.log("CREATE_PROJECT", "PROJECT", result.getId(),
+                "Project created: " + result.getTitle() + " by user " + userId);
+        return result;
     }
 
     @Transactional
@@ -65,7 +72,10 @@ public class ProjectService {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", id));
         project.setStatus(Project.ProjectStatus.valueOf(status));
-        return toDto(projectRepository.save(project));
+        ProjectDto result = toDto(projectRepository.save(project));
+        auditService.log("UPDATE_PROJECT_STATUS", "PROJECT", id,
+                "Project " + result.getTitle() + " status changed to " + status);
+        return result;
     }
 
     @Transactional
@@ -75,7 +85,10 @@ public class ProjectService {
         Supervisor supervisor = supervisorRepository.findById(supervisorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Supervisor", supervisorId));
         project.setSupervisor(supervisor);
-        return toDto(projectRepository.save(project));
+        ProjectDto result = toDto(projectRepository.save(project));
+        auditService.log("ASSIGN_SUPERVISOR", "PROJECT", projectId,
+                "Supervisor " + supervisorId + " assigned to project " + result.getTitle());
+        return result;
     }
 
     public ProjectDto toDto(Project p) {
