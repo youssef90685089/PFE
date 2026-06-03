@@ -232,5 +232,74 @@ Exception & Timer expiry triggers automatic submission \\
 \caption{Use case: Take a quiz}
 \end{table}
 
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Field} & \textbf{Description} \\
+\hline
+Use Case & AI-Powered Project Ranking \\
+\hline
+Actor & System (AI Module), Manager \\
+\hline
+Precondition & Applications exist with status QUIZ\_COMPLETED; AI service is configured with a valid API key \\
+\hline
+Main Scenario & 1. System triggers AI evaluation after quiz completion \newline 2. AI analyzes candidate profile, skills, and quiz score against project requirements \newline 3. AI assigns a relevance score (0--100\%) to each candidate--project pair \newline 4. Manager views ranked list in the dashboard \newline 5. Manager uses rankings to inform final assignment decisions \\
+\hline
+Postcondition & AI scores persisted; candidates ordered by relevance \\
+\hline
+Exception & AI API unavailable → system logs error, manager notified, manual ranking fallback \\
+\hline
+\end{tabular}
+\caption{Use case: AI-powered project ranking}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Field} & \textbf{Description} \\
+\hline
+Use Case & Assign Supervisor to Candidate \\
+\hline
+Actor & Manager \\
+\hline
+Precondition & Candidate status is MANAGER\_REVIEW; at least one supervisor with available capacity exists \\
+\hline
+Main Scenario & 1. Manager reviews candidate profile, quiz score, and AI match results \newline 2. System displays list of eligible supervisors with expertise tags and current load \newline 3. AI recommends best-fit supervisor (match score \& availability) \newline 4. Manager selects a supervisor \newline 5. System updates application with supervisor assignment \newline 6. System decrements supervisor's available capacity \\
+\hline
+Postcondition & Supervisor assigned; capacity updated; notification sent to supervisor \\
+\hline
+Exception & All supervisors at max capacity → manager alerted, candidate placed in waiting pool \\
+\hline
+\end{tabular}
+\caption{Use case: Assign supervisor to candidate}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Field} & \textbf{Description} \\
+\hline
+Use Case & Send Automated Email Notification \\
+\hline
+Actor & System (Email Service) \\
+\hline
+Precondition & A trigger event occurs: candidate creation, quiz assignment, status change, or supervisor assignment \\
+\hline
+Main Scenario & 1. Trigger event fires in the application \newline 2. System constructs email content with context-specific template \newline 3. System resolves recipient email address from candidate or user profile \newline 4. System sends email via Gmail SMTP with TLS \newline 5. System logs the notification in the notifications table \\
+\hline
+Postcondition & Email delivered; notification record created \\
+\hline
+Exception & SMTP authentication failure → system retries up to 3 times with 5-second interval; if all retries fail, error is logged and admin is alerted \\
+\hline
+\end{tabular}
+\caption{Use case: Send automated email notification}
+\end{table}
+
 \section{CONCLUSION}
 This chapter provided a complete specification of the SIPMS platform requirements. The actor identification, structured requirements, and use case models serve as the design foundation addressed in the next chapter.
