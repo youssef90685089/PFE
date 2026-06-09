@@ -111,21 +111,13 @@ export default function QuizSelectionModal({ candidate, onClose, onSelect, onSki
           >
             Cancel
           </button>
-          {quizzes.length > 0 && (
-            <button
-              onClick={() => { setSelectedQuizId(null); onSkip(); }}
-              className="flex-1 rounded-lg border border-surface-300 px-4 py-2 text-sm font-medium text-surface-600 hover:bg-surface-50 transition-all"
-            >
-              Create Default
-            </button>
-          )}
           <button
             onClick={handleConfirm}
-            disabled={loading}
+            disabled={loading || !selectedQuizId}
             className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all inline-flex items-center justify-center gap-2"
           >
             <Plus className="h-4 w-4" />
-            {selectedQuizId ? 'Assign & Send' : 'Create Default & Send'}
+            Assign & Send
           </button>
         </div>
       </div>

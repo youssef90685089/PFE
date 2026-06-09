@@ -1,6 +1,7 @@
 package com.project.sipms.ai;
 
 import com.project.sipms.dto.AiRankingDto;
+import com.project.sipms.dto.CvProjectMatchDto;
 import com.project.sipms.entity.Candidate;
 import com.project.sipms.entity.Project;
 import com.project.sipms.entity.Supervisor;
@@ -35,4 +36,12 @@ public interface AiRankingStrategy {
      * @return A structured roadmap string
      */
     String generateRoadmap(String cvText);
+
+    /**
+     * Match CV text to available projects and generate roadmap
+     * @param cvText The text extracted from the candidate's CV
+     * @param projects List of available projects to match against
+     * @return Combined roadmap and project matches
+     */
+    CvProjectMatchDto matchCvToProjects(String cvText, List<Project> projects);
 }

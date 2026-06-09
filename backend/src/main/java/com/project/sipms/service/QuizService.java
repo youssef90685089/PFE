@@ -85,6 +85,40 @@ public class QuizService {
                 .map(this::toDtoWithoutAnswers);
     }
 
+    /**
+     * Returns the one quiz assigned to this candidate, resolved in priority order:
+     *   1. Directly assigned quiz stored on the candidate record (set during approval)
+     *   2. Active quiz whose specialty matches the candidate's degree/skills
+     *   3. First available active quiz (fallback)
+     */
+    @Transactional
+    public Optional<QuizDto> getMyQuiz(Long userId) {
+        Candidate candidate = findCandidateForUser(userId);
+
+        // Priority 1: directly assigned quiz
+        if (candidate.getAssignedQuizId() != null) {
+            return quizRepository.findById(candidate.getAssignedQuizId())
+                    .map(this::toDtoWithoutAnswers);
+        }
+
+        // Priority 2: match by candidate's degree / skills tags as specialty
+        String specialty = candidate.getDegree();
+        if (specialty == null || specialty.isBlank()) {
+            specialty = candidate.getSkillsTags();
+        }
+        if (specialty != null && !specialty.isBlank()) {
+            Optional<QuizDto> bySpecialty = quizRepository
+                    .findFirstBySpecialtyIgnoreCaseAndActiveTrue(specialty)
+                    .map(this::toDtoWithoutAnswers);
+            if (bySpecialty.isPresent()) return bySpecialty;
+        }
+
+        // Priority 3: fallback — first active quiz
+        return quizRepository.findByActiveTrue().stream()
+                .findFirst()
+                .map(this::toDtoWithoutAnswers);
+    }
+
     // ── CREATE ────────────────────────────────────────────────────────────────
 
     /**
@@ -192,8 +226,7 @@ public class QuizService {
      */
     @Transactional
     public QuizResultDto submitQuiz(Long userId, QuizSubmissionRequest submission) {
-        Candidate candidate = candidateRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Candidate not found for user: " + userId));
+        Candidate candidate = findCandidateForUser(userId);
 
         Quiz quiz = quizRepository.findById(submission.getQuizId())
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz", submission.getQuizId()));
@@ -270,13 +303,22 @@ public class QuizService {
         notificationService.createNotification(userId, "Quiz Results",
                 resultMessage, passed ? "SUCCESS" : "WARNING", "/dashboard/quiz-interface");
 
-        // Notify managers that candidate took the quiz
+        // Notify managers about the quiz results
         List<User> managers = userRepository.findByRoleName("ROLE_MANAGER");
-        String managerMessage = String.format("The candidate %s %s took the quiz '%s' and scored %.1f%%.", 
-                candidate.getFirstName(), candidate.getLastName(), quiz.getTitle(), percentage);
-        for (User manager : managers) {
-            notificationService.createNotification(manager.getId(), "Candidate Quiz Completed",
-                    managerMessage, "INFO", "/dashboard/candidates");
+        if (passed) {
+            String managerMessage = String.format("The candidate %s %s passed the quiz '%s' with a score of %.1f%%.", 
+                    candidate.getFirstName(), candidate.getLastName(), quiz.getTitle(), percentage);
+            for (User manager : managers) {
+                notificationService.createNotification(manager.getId(), "Candidate Passed Quiz",
+                        managerMessage, "SUCCESS", "/dashboard/candidates");
+            }
+        } else {
+            String managerMessage = String.format("The candidate %s %s failed the quiz '%s' with a score of %.1f%%.", 
+                    candidate.getFirstName(), candidate.getLastName(), quiz.getTitle(), percentage);
+            for (User manager : managers) {
+                notificationService.createNotification(manager.getId(), "Candidate Failed Quiz",
+                        managerMessage, "WARNING", "/dashboard/candidates");
+            }
         }
 
         return QuizResultDto.builder()
@@ -293,10 +335,9 @@ public class QuizService {
     }
 
     /** Get quiz results for a candidate */
-    @Transactional(readOnly = true)
+    @Transactional
     public List<QuizResultDto> getCandidateResults(Long userId) {
-        Candidate candidate = candidateRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Candidate not found for user: " + userId));
+        Candidate candidate = findCandidateForUser(userId);
 
         return attemptRepository.findByCandidateId(candidate.getId()).stream()
                 .map(a -> QuizResultDto.builder()
@@ -311,6 +352,51 @@ public class QuizService {
                         .completedAt(a.getCompletedAt())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /**
+     * Finds the Candidate linked to a given userId.
+     * Primary lookup: by candidate.user_id FK.
+     * Fallback: look up the User's email and match against candidate.email,
+     *           then auto-repair the missing FK so future lookups succeed.
+     */
+    @Transactional
+    private Candidate findCandidateForUser(Long userId) {
+        // 1. Fast path — the FK is properly set
+        java.util.Optional<Candidate> byUserId = candidateRepository.findByUserId(userId);
+        if (byUserId.isPresent()) {
+            return byUserId.get();
+        }
+
+        // 2. Fallback — FK was never written (partial/failed approval); try email match
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new com.project.sipms.common.ResourceNotFoundException("User", userId));
+
+        Candidate candidate = candidateRepository.findByEmail(user.getEmail())
+                .orElseGet(() -> {
+                    Candidate newCandidate = Candidate.builder()
+                            .firstName(user.getFirstName())
+                            .lastName(user.getLastName())
+                            .email(user.getEmail())
+                            .phone(user.getPhone())
+                            .cin(user.getCin())
+                            .user(user)
+                            .build();
+                    System.out.println("[QuizService] Auto-created missing Candidate record for user " + userId);
+                    return candidateRepository.save(newCandidate);
+                });
+
+        // Auto-repair: write the missing FK so the fast path works next time
+        if (candidate.getUser() == null) {
+            candidate.setUser(user);
+            candidateRepository.save(candidate);
+            System.out.println("[QuizService] Auto-repaired candidate " + candidate.getId()
+                    + " -> user " + userId + " link.");
+        }
+
+        return candidate;
     }
 
     // ── Mappers ───────────────────────────────────────────────────────────────

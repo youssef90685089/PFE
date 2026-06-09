@@ -55,6 +55,9 @@ public class Candidate {
         updatedAt = LocalDateTime.now();
     }
 
+    @Column(name = "assigned_quiz_id")
+    private Long assignedQuizId;
+
     public boolean isHasUserAccount() {
         return user != null;
     }

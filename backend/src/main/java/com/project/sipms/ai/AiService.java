@@ -2,6 +2,7 @@ package com.project.sipms.ai;
 
 import com.project.sipms.common.ResourceNotFoundException;
 import com.project.sipms.dto.AiRankingDto;
+import com.project.sipms.dto.CvProjectMatchDto;
 import com.project.sipms.entity.AiRanking;
 import com.project.sipms.entity.Candidate;
 import com.project.sipms.entity.Project;
@@ -93,6 +94,12 @@ public class AiService {
     /** Generate a roadmap based on CV text */
     public String generateRoadmap(String cvText) {
         return rankingStrategy.generateRoadmap(cvText);
+    }
+
+    /** Match CV to available projects and generate roadmap */
+    public com.project.sipms.dto.CvProjectMatchDto matchCvToProjects(String cvText) {
+        List<Project> allProjects = projectRepository.findAll();
+        return rankingStrategy.matchCvToProjects(cvText, allProjects);
     }
 
     /** Get historical rankings */

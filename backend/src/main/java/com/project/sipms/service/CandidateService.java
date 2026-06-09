@@ -3,6 +3,7 @@ package com.project.sipms.service;
 import com.project.sipms.common.AuditService;
 import com.project.sipms.common.BusinessException;
 import com.project.sipms.common.FileStorageService;
+import org.springframework.transaction.annotation.Transactional;
 import com.project.sipms.common.ResourceNotFoundException;
 import com.project.sipms.dto.CandidateDto;
 import com.project.sipms.dto.CreateCandidateRequest;
@@ -89,6 +90,54 @@ public class CandidateService {
     public CandidateDto getCandidateById(Long id) {
         return toDto(candidateRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Candidate", id)));
+    }
+
+    @Transactional
+    public CandidateDto updateCandidate(Long id, CreateCandidateRequest req) {
+        Candidate candidate = candidateRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Candidate", id));
+        
+        if (!candidate.getEmail().equals(req.getEmail()) && candidateRepository.existsByEmail(req.getEmail())) {
+            throw new BusinessException("Email already registered: " + req.getEmail());
+        }
+
+        candidate.setFirstName(req.getFirstName());
+        candidate.setLastName(req.getLastName());
+        candidate.setEmail(req.getEmail());
+        candidate.setPhone(req.getPhone());
+        candidate.setCin(req.getCin());
+
+        boolean newlyApproved = false;
+        if (req.getHasUserAccount() != null) {
+            if (req.getHasUserAccount() && candidate.getUser() == null) {
+                newlyApproved = true;
+            } else if (!req.getHasUserAccount() && candidate.getUser() != null) {
+                User u = candidate.getUser();
+                candidate.setUser(null);
+                userRepository.delete(u);
+            }
+        }
+
+        candidate = candidateRepository.save(candidate);
+        auditService.log("UPDATE_CANDIDATE", "CANDIDATE", candidate.getId(),
+                "Updated candidate: " + candidate.getEmail());
+        
+        if (candidate.getUser() != null && !newlyApproved) {
+            User user = candidate.getUser();
+            user.setFirstName(req.getFirstName());
+            user.setLastName(req.getLastName());
+            user.setEmail(req.getEmail());
+            user.setPhone(req.getPhone());
+            user.setCin(req.getCin());
+            userRepository.save(user);
+        }
+
+        if (newlyApproved) {
+            approveAndSendQuiz(candidate.getId(), new com.project.sipms.dto.ApproveAndSendQuizRequest());
+            candidate = candidateRepository.findById(id).orElse(candidate);
+        }
+
+        return toDto(candidate);
     }
 
     @Transactional
@@ -182,6 +231,7 @@ public class CandidateService {
         Candidate candidate = candidateRepository.findById(candidateId)
                 .orElseThrow(() -> new ResourceNotFoundException("Candidate", candidateId));
 
+        // If candidate already has a properly linked user account, just resend the email
         if (candidate.isHasUserAccount()) {
             throw new BusinessException("Candidate already has a user account");
         }
@@ -189,32 +239,50 @@ public class CandidateService {
         boolean useExistingQuiz = req != null && req.getQuizId() != null;
         String quizTitle;
         Quiz quiz;
+        String rawPassword;
 
-        // 1. Generate temp password
-        String rawPassword = generateTempPassword();
+        // Check if a user with this email already exists (from a previous partial/failed approval)
+        java.util.Optional<User> existingUserOpt = userRepository.findByEmail(candidate.getEmail());
+        User user;
 
-        // 2. Create User account
-        Role candidateRole = roleRepository.findByName("ROLE_CANDIDATE")
-                .orElseThrow(() -> new BusinessException("Role ROLE_CANDIDATE not found"));
+        if (existingUserOpt.isPresent()) {
+            // Reuse the existing user account and repair the candidate → user link
+            user = existingUserOpt.get();
+            rawPassword = generateTempPassword(); // Always generate a new temp password
+            user.setPasswordHash(passwordEncoder.encode(rawPassword));
+            user.setMustChangePassword(true);
+            userRepository.save(user);
 
-        User user = User.builder()
-                .firstName(candidate.getFirstName())
-                .lastName(candidate.getLastName())
-                .email(candidate.getEmail())
-                .phone(candidate.getPhone())
-                .cin(candidate.getCin())
-                .passwordHash(passwordEncoder.encode(rawPassword))
-                .active(true)
-                .mustChangePassword(true)
-                .roles(java.util.Set.of(candidateRole))
-                .status("pending_quiz")
-                .build();
+            candidate.setUser(user);
+            candidateRepository.save(candidate);
+            System.out.println("Reusing existing user account " + user.getId() + " for candidate " + candidateId + " and reset password.");
+        } else {
+            // 1. Generate temp password
+            rawPassword = generateTempPassword();
 
-        user = userRepository.save(user);
+            // 2. Create User account
+            Role candidateRole = roleRepository.findByName("ROLE_CANDIDATE")
+                    .orElseThrow(() -> new BusinessException("Role ROLE_CANDIDATE not found"));
 
-        // 3. Link candidate to user account
-        candidate.setUser(user);
-        candidateRepository.save(candidate);
+            user = User.builder()
+                    .firstName(candidate.getFirstName())
+                    .lastName(candidate.getLastName())
+                    .email(candidate.getEmail())
+                    .phone(candidate.getPhone())
+                    .cin(candidate.getCin())
+                    .passwordHash(passwordEncoder.encode(rawPassword))
+                    .active(true)
+                    .mustChangePassword(true)
+                    .roles(java.util.Set.of(candidateRole))
+                    .status("pending_quiz")
+                    .build();
+
+            user = userRepository.save(user);
+
+            // 3. Link candidate to user account
+            candidate.setUser(user);
+            candidateRepository.save(candidate);
+        }
 
         // 4. Quiz handling: use existing or create default
         if (useExistingQuiz) {
@@ -261,15 +329,23 @@ public class CandidateService {
 
         auditService.log("APPROVE_CANDIDATE", "CANDIDATE", candidateId,
                 "Approved candidate " + candidate.getEmail() + " -> user " + user.getId() + " quiz: " + quizTitle);
+
+        // 5a. Persist the quiz assignment on the candidate
+        candidate.setAssignedQuizId(quiz.getId());
+        candidateRepository.save(candidate);
+
         // 5. Send welcome email
         try {
-            emailService.sendCandidateWelcomeEmail(
-                    candidate.getEmail(),
-                    candidate.getFirstName() + " " + candidate.getLastName(),
-                    rawPassword,
-                    "http://localhost:5173/login",
-                    quizTitle
-            );
+            if (rawPassword != null) {
+                // Always send the full welcome with the newly generated temp password
+                emailService.sendCandidateWelcomeEmail(
+                        candidate.getEmail(),
+                        candidate.getFirstName() + " " + candidate.getLastName(),
+                        rawPassword,
+                        "http://localhost:5173/login",
+                        quizTitle
+                );
+            }
         } catch (Exception e) {
             System.err.println("Welcome email failed for " + candidate.getEmail() + ": " + e.getMessage());
         }

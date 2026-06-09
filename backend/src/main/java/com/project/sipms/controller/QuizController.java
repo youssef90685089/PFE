@@ -54,6 +54,19 @@ public class QuizController {
         return ResponseEntity.ok(ApiResponse.ok(quiz.get()));
     }
 
+    // ── GET my assigned quiz — Candidate ─────────────────────────────────────
+    @GetMapping("/my-quiz")
+    @PreAuthorize("hasRole('CANDIDATE')")
+    @Operation(summary = "Get the quiz assigned to the current candidate")
+    public ResponseEntity<ApiResponse<QuizDto>> getMyQuiz(
+            @AuthenticationPrincipal UserDetailsImpl user) {
+        Optional<QuizDto> quiz = quizService.getMyQuiz(user.getId());
+        if (quiz.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.error("No quiz has been assigned to you yet. Please wait for manager approval."));
+        }
+        return ResponseEntity.ok(ApiResponse.ok("Quiz found", quiz.get()));
+    }
+
     // ── GET my quiz results — Candidate ──────────────────────────────────────
     @GetMapping("/my-results")
     @PreAuthorize("hasRole('CANDIDATE')")

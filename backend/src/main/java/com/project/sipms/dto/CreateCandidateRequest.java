@@ -17,4 +17,5 @@ public class CreateCandidateRequest {
     private String email;
     private String phone;
     private String cin;
+    private Boolean hasUserAccount;
 }

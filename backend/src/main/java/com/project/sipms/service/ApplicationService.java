@@ -28,6 +28,7 @@ public class ApplicationService {
     private final com.project.sipms.security.SecurityAuditService securityAuditService;
     private final EmailService emailService;
     private final QuizAttemptRepository quizAttemptRepository;
+    private final com.project.sipms.repository.UserRepository userRepository;
 
     public ApplicationService(ApplicationRepository applicationRepository,
                               CandidateRepository candidateRepository,
@@ -36,7 +37,8 @@ public class ApplicationService {
                               NotificationService notificationService,
                               com.project.sipms.security.SecurityAuditService securityAuditService,
                               EmailService emailService,
-                              QuizAttemptRepository quizAttemptRepository) {
+                              QuizAttemptRepository quizAttemptRepository,
+                              com.project.sipms.repository.UserRepository userRepository) {
         this.applicationRepository = applicationRepository;
         this.candidateRepository = candidateRepository;
         this.projectRepository = projectRepository;
@@ -45,6 +47,7 @@ public class ApplicationService {
         this.securityAuditService = securityAuditService;
         this.emailService = emailService;
         this.quizAttemptRepository = quizAttemptRepository;
+        this.userRepository = userRepository;
     }
 
     public List<ApplicationDto> getAllApplications() {
@@ -72,8 +75,7 @@ public class ApplicationService {
     @Transactional
     public ApplicationDto createApplication(Long userId, Long projectId,
                                             String intakeMethod, Long registeredById) {
-        Candidate candidate = candidateRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Candidate not found for user: " + userId));
+        Candidate candidate = findCandidateForUser(userId);
 
         Application app = Application.builder()
                 .candidate(candidate)
@@ -213,6 +215,41 @@ public class ApplicationService {
         if (latestAttempt == null || !latestAttempt.getPassed()) {
             throw new BusinessException("You must pass the quiz before proceeding to " + targetStatus);
         }
+    }
+
+    /**
+     * Finds the Candidate linked to a given userId.
+     * Falls back to email-matching and auto-repairs the FK if missing.
+     */
+    @Transactional
+    private Candidate findCandidateForUser(Long userId) {
+        java.util.Optional<Candidate> byUserId = candidateRepository.findByUserId(userId);
+        if (byUserId.isPresent()) return byUserId.get();
+
+        com.project.sipms.entity.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+
+        Candidate candidate = candidateRepository.findByEmail(user.getEmail())
+                .orElseGet(() -> {
+                    Candidate newCandidate = Candidate.builder()
+                            .firstName(user.getFirstName())
+                            .lastName(user.getLastName())
+                            .email(user.getEmail())
+                            .phone(user.getPhone())
+                            .cin(user.getCin())
+                            .user(user)
+                            .build();
+                    System.out.println("[ApplicationService] Auto-created missing Candidate record for user " + userId);
+                    return candidateRepository.save(newCandidate);
+                });
+
+        if (candidate.getUser() == null) {
+            candidate.setUser(user);
+            candidateRepository.save(candidate);
+            System.out.println("[ApplicationService] Auto-repaired candidate " + candidate.getId()
+                    + " -> user " + userId + " link.");
+        }
+        return candidate;
     }
 
     public ApplicationDto toDto(Application a) {

@@ -13,4 +13,5 @@ public interface SupervisorRepository extends JpaRepository<Supervisor, Long> {
     List<Supervisor> findByExpertiseTagsContainingIgnoreCase(String tag);
     boolean existsByEmailIgnoreCase(String email);
     Optional<Supervisor> findByEmailIgnoreCase(String email);
+    Optional<Supervisor> findByUserId(Long userId);
 }

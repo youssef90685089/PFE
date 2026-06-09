@@ -40,6 +40,14 @@ public class ProjectController {
         return ResponseEntity.ok(ApiResponse.ok(projectService.getProjectsByUserId(user.getId())));
     }
 
+    @GetMapping("/managed")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Get projects managed by current user")
+    public ResponseEntity<ApiResponse<List<ProjectDto>>> getManagedProjects(
+            @AuthenticationPrincipal UserDetailsImpl user) {
+        return ResponseEntity.ok(ApiResponse.ok(projectService.getManagedProjects(user.getId())));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get project by ID")
     public ResponseEntity<ApiResponse<ProjectDto>> getById(@PathVariable Long id) {
@@ -47,7 +55,7 @@ public class ProjectController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('CANDIDATE', 'MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @Operation(summary = "Submit a new project idea")
     public ResponseEntity<ApiResponse<ProjectDto>> createProject(
             @AuthenticationPrincipal UserDetailsImpl user,
@@ -72,5 +80,22 @@ public class ProjectController {
             @PathVariable Long id, @RequestBody Map<String, Long> body) {
         return ResponseEntity.ok(ApiResponse.ok("Supervisor assigned",
                 projectService.assignSupervisor(id, body.get("supervisorId"))));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @Operation(summary = "Update project details")
+    public ResponseEntity<ApiResponse<ProjectDto>> updateProject(
+            @PathVariable Long id, @Valid @RequestBody ProjectDto dto) {
+        return ResponseEntity.ok(ApiResponse.ok("Project updated successfully",
+                projectService.updateProject(id, dto)));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @Operation(summary = "Delete a project")
+    public ResponseEntity<ApiResponse<Void>> deleteProject(@PathVariable Long id) {
+        projectService.deleteProject(id);
+        return ResponseEntity.ok(ApiResponse.ok("Project deleted successfully", null));
     }
 }

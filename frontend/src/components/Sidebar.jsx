@@ -18,6 +18,7 @@ const NAV_ITEMS = {
   MANAGER: [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
     { to: '/dashboard/candidates', icon: Users, label: 'Candidates' },
+    { to: '/dashboard/projects', icon: FolderKanban, label: 'Projects' },
     { to: '/dashboard/quizzes', icon: ClipboardCheck, label: 'Quizzes' },
     { to: '/dashboard/interviews', icon: CalendarDays, label: 'Schedule Interview' },
     { to: '/dashboard/project-assignment', icon: Briefcase, label: 'Assign Project' },
@@ -30,13 +31,7 @@ const NAV_ITEMS = {
     { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ],
   CANDIDATE: [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
-    { to: '/dashboard/cv-upload', icon: FileText, label: 'Submit CV' },
-    { to: '/dashboard/my-applications', icon: FileText, label: 'My Applications' },
-    { to: '/dashboard/my-projects', icon: FolderKanban, label: 'My Projects' },
     { to: '/dashboard/quiz-interface', icon: ClipboardCheck, label: 'Take Quiz' },
-    { to: '/dashboard/notifications', icon: Bell, label: 'Notifications' },
-    { to: '/dashboard/profile', icon: Settings, label: 'Profile' },
   ],
 };
 

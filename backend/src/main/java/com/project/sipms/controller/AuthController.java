@@ -112,6 +112,18 @@ public class AuthController {
                             "/dashboard/users"
                     )
                 );
+                
+                if (roles.contains("ROLE_CANDIDATE")) {
+                    userRepository.findByRoleName("ROLE_RECEPTION").forEach(reception ->
+                        notificationService.createNotification(
+                                reception.getId(),
+                                "New Candidate Login",
+                                name + " (" + user.getEmail() + ") logged in for the first time.",
+                                "INFO",
+                                "/dashboard/candidates"
+                        )
+                    );
+                }
             }
 
             return ResponseEntity.ok(ApiResponse.ok("Login successful", response));

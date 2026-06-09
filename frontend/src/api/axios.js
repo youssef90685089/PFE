@@ -79,6 +79,7 @@ export const candidatesApi = {
   getAll:              ()          => api.get('/candidates'),
   getById:             (id)        => api.get(`/candidates/${id}`),
   create:              (data)      => api.post('/candidates', data),
+  update:              (id, data)  => api.put(`/candidates/${id}`, data),
   delete:              (id)        => api.delete(`/candidates/${id}`),
   // Internship Files
   addInternshipFile:   (cid, data) => api.post(`/candidates/${cid}/internship-files`, data),
@@ -89,8 +90,15 @@ export const candidatesApi = {
   deleteInternshipFile:(fid)       => api.delete(`/candidates/internship-files/${fid}`),
   // Manager action: approve and send quiz (NEW)
   approveAndSendQuiz:  (cid, req)  => api.post(`/candidates/${cid}/approve-and-send-quiz`, req || {}),
-  // Manager action: legacy endpoint for backward compatibility
-  sendQuizAndInvite:   (cid)       => api.post(`/candidates/${cid}/invite`),
+  // CV upload + AI analysis (file)
+  uploadCV:            (file)      => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/ai/analyze-cv', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000, // CV parsing may take longer
+    });
+  },
 };
 
 // ── Applications API ──────────────────────────────────────
@@ -110,7 +118,10 @@ export const projectsApi = {
   getAll: () => api.get('/projects'),
   getById: (id) => api.get(`/projects/${id}`),
   getMy: () => api.get('/projects/my'),
+  getManaged: () => api.get('/projects/managed'),
   create: (data) => api.post('/projects', data),
+  update: (id, data) => api.put(`/projects/${id}`, data),
+  delete: (id) => api.delete(`/projects/${id}`),
   updateStatus: (id, status) => api.patch(`/projects/${id}/status`, { status }),
   assignSupervisor: (id, supervisorId) => api.patch(`/projects/${id}/assign-supervisor`, { supervisorId }),
 };
@@ -129,12 +140,14 @@ export const supervisorsApi = {
 export const quizzesApi = {
   getAll:            ()               => api.get('/quizzes'),
   getActive:         ()               => api.get('/quizzes/active'),
+  getMyQuiz:         ()               => api.get('/quizzes/my-quiz'),
   getForCandidate:   (id)             => api.get(`/quizzes/${id}`),
   getFull:           (id)             => api.get(`/quizzes/${id}/full`),
   submit:            (data)           => api.post('/quizzes/submit', data),
   getMyResults:      ()               => api.get('/quizzes/my-results'),
   getBySpecialty:    (specialty)      => api.get('/quizzes/by-specialty', { params: { specialty } }),
   create:            (data)           => api.post('/quizzes', data),
+  update:            (id, data)       => api.put(`/quizzes/${id}`, data),
   // Assign an existing quiz to a candidate (best-effort — 404 gracefully ignored in UI)
   assignToCandidate: (quizId, userId) => api.post(`/quizzes/${quizId}/assign/${userId}`),
 };
@@ -169,4 +182,13 @@ export const aiApi = {
   matchCandidates: (supervisorId) => api.post(`/ai/match-candidates/${supervisorId}`),
   getProjectRankings: () => api.get('/ai/rankings/projects'),
   getCandidateMatchings: (supervisorId) => api.get(`/ai/rankings/candidates/${supervisorId}`),
+  // Upload a CV file and get AI-ranked project matches
+  analyzeCv: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/ai/analyze-cv', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000,
+    });
+  },
 };

@@ -5,7 +5,7 @@ import { candidatesApi } from '../../api/axios';
 import DataTable from '../../components/ui/DataTable';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import QuizSelectionModal from '../../components/QuizSelectionModal';
-import { Send, UserCheck, FileText, Filter, Calendar } from 'lucide-react';
+import { Send, UserCheck, FileText, Filter, Calendar, Edit2, Trash2, X } from 'lucide-react';
 
 export default function CandidatesPage() {
   const { user } = useAuth();
@@ -14,6 +14,8 @@ export default function CandidatesPage() {
   const [inviting, setInviting] = useState(null);
   const [quizModal, setQuizModal] = useState(null); // candidate object when selecting quiz
   const [yearFilter, setYearFilter] = useState(''); // '' = all years
+  const [editModal, setEditModal] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const isManager = user?.roles?.includes('ROLE_MANAGER') || user?.roles?.includes('MANAGER');
   const isAdmin = user?.roles?.includes('ROLE_ADMIN') || user?.roles?.includes('ADMIN');
@@ -65,9 +67,38 @@ export default function CandidatesPage() {
         toast.error(res.data?.message || 'Failed to approve candidate');
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to approve candidate');
+      const msg = err.response?.data?.message || 'Failed to approve candidate';
+      toast(msg, { icon: '⚠️', duration: 8000, style: { background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px 18px', fontSize: '14px', fontWeight: 500 } });
     } finally {
       setInviting(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    try {
+      await candidatesApi.delete(deleteConfirm.id);
+      toast.success('Candidate deleted successfully');
+      setDeleteConfirm(null);
+      loadCandidates();
+    } catch (err) {
+      toast.error('Failed to delete candidate');
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    if (!editModal) return;
+    try {
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData.entries());
+      data.hasUserAccount = data.hasUserAccount === 'true';
+      await candidatesApi.update(editModal.id, data);
+      toast.success('Candidate updated successfully');
+      setEditModal(null);
+      loadCandidates();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update candidate');
     }
   };
 
@@ -151,36 +182,45 @@ export default function CandidatesPage() {
       accessor: 'id',
       render: (r) => {
         const hasFiles = (r.internshipFiles?.length || 0) > 0;
-        if (r.hasUserAccount) {
-          return <span className="text-xs text-surface-400 italic">Approved ✓</span>;
-        }
         return (
-          <div className="relative group/btn inline-block">
-            <button
-              onClick={() => hasFiles && setQuizModal(r)}
-              disabled={inviting === r.id || !hasFiles}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all shadow-sm whitespace-nowrap
-                ${hasFiles
-                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer'
-                  : 'bg-surface-200 text-surface-400 cursor-not-allowed opacity-70'
-                }`}
-              title={!hasFiles ? 'Cannot send quiz: candidate has no internship file' : 'Select quiz, approve & send invitation'}
-            >
-              {inviting === r.id ? (
-                <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              ) : (
-                <Send className="h-3.5 w-3.5" />
-              )}
-              Approve & Send Quiz
-            </button>
-            {/* Tooltip for no file */}
-            {!hasFiles && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/btn:flex items-center gap-1.5 bg-surface-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg z-10 pointer-events-none">
-                <FileText className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                No internship file uploaded yet
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-surface-900" />
+          <div className="flex items-center gap-2">
+            {!r.hasUserAccount ? (
+              <div className="relative group/btn inline-block">
+                <button
+                  onClick={() => hasFiles && setQuizModal(r)}
+                  disabled={inviting === r.id || !hasFiles}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold transition-all shadow-sm whitespace-nowrap
+                    ${hasFiles
+                      ? 'bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer'
+                      : 'bg-surface-200 text-surface-400 cursor-not-allowed opacity-70'
+                    }`}
+                  title={!hasFiles ? 'Cannot send quiz: candidate has no internship file' : 'Select quiz, approve & send invitation'}
+                >
+                  {inviting === r.id ? (
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  ) : (
+                    <Send className="h-3.5 w-3.5" />
+                  )}
+                  Approve
+                </button>
               </div>
+            ) : (
+              <span className="text-xs text-surface-400 italic">Approved ✓</span>
             )}
+            <button
+              onClick={() => setEditModal(r)}
+              className="p-1.5 text-surface-500 hover:bg-surface-100 hover:text-primary-600 rounded-lg transition-colors"
+              title="Edit candidate"
+            >
+              <Edit2 className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setDeleteConfirm(r)}
+              className="p-1.5 text-surface-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+              title="Delete candidate"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
           </div>
         );
       },
@@ -249,6 +289,85 @@ export default function CandidatesPage() {
             handleApproveAndSendQuiz(cid, null);
           }}
         />
+      )}
+
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-surface-900 mb-2">Delete Candidate</h3>
+            <p className="text-surface-600 mb-6 text-sm">
+              Are you sure you want to delete <strong>{deleteConfirm.firstName} {deleteConfirm.lastName}</strong>? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-surface-600 hover:bg-surface-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors shadow-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-surface-900">Edit Candidate</h3>
+              <button onClick={() => setEditModal(null)} className="p-1 text-surface-400 hover:text-surface-600 rounded-lg hover:bg-surface-100 transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleUpdate} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-surface-700">First Name</label>
+                  <input name="firstName" defaultValue={editModal.firstName} required className="w-full rounded-xl border border-surface-200 px-3 py-2 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-surface-700">Last Name</label>
+                  <input name="lastName" defaultValue={editModal.lastName} required className="w-full rounded-xl border border-surface-200 px-3 py-2 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-surface-700">Email</label>
+                <input name="email" type="email" defaultValue={editModal.email} required className="w-full rounded-xl border border-surface-200 px-3 py-2 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-surface-700">Phone</label>
+                  <input name="phone" defaultValue={editModal.phone} className="w-full rounded-xl border border-surface-200 px-3 py-2 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-surface-700">CIN</label>
+                  <input name="cin" defaultValue={editModal.cin} className="w-full rounded-xl border border-surface-200 px-3 py-2 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-surface-700">Account Status</label>
+                <select name="hasUserAccount" defaultValue={editModal.hasUserAccount ? "true" : "false"} className="w-full rounded-xl border border-surface-200 px-3 py-2 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all">
+                  <option value="true">Approved (Active User Account)</option>
+                  <option value="false">Pending (No User Account)</option>
+                </select>
+              </div>
+              <div className="pt-2 flex justify-end gap-3">
+                <button type="button" onClick={() => setEditModal(null)} className="rounded-xl px-4 py-2 text-sm font-semibold text-surface-600 hover:bg-surface-100 transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 transition-colors shadow-sm">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

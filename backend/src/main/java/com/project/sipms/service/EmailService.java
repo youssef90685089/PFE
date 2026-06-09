@@ -92,6 +92,29 @@ public class EmailService {
                 buildQuizReminderEmail(candidateName));
     }
 
+    @Async
+    public void sendInterviewScheduledEmail(String to, String name, java.time.LocalDateTime scheduledAt, String interviewer, String type) {
+        if (!emailEnabled) return;
+
+        String subject = "Interview Scheduled — SIPMS";
+        String formattedDate = scheduledAt.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        String body = """
+            Dear %s,
+
+            A %s interview has been scheduled for you.
+
+            Date & Time: %s
+            Interviewer: %s
+
+            Please make sure to be prepared and available at the scheduled time.
+
+            Best regards,
+            SIPMS Team
+            """.formatted(name, type, formattedDate, interviewer);
+
+        sendPlainEmail(to, subject, body);
+    }
+
     // ── Welcome Email (HTML) ──────────────────────────────────────────────────
 
     @Async

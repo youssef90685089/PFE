@@ -22,12 +22,14 @@ public class InterviewService {
     private final InterviewRepository interviewRepository;
     private final CandidateRepository candidateRepository;
     private final AuditService auditService;
+    private final EmailService emailService;
 
     public InterviewService(InterviewRepository interviewRepository, CandidateRepository candidateRepository,
-                            AuditService auditService) {
+                            AuditService auditService, EmailService emailService) {
         this.interviewRepository = interviewRepository;
         this.candidateRepository = candidateRepository;
         this.auditService = auditService;
+        this.emailService = emailService;
     }
 
     @Transactional(readOnly = true)
@@ -67,6 +69,22 @@ public class InterviewService {
         interview = interviewRepository.save(interview);
         auditService.log("SCHEDULE_INTERVIEW", "INTERVIEW", interview.getId(),
                 "Interview scheduled for candidate " + req.getCandidateId() + " by " + req.getInterviewer());
+        
+        // Send email notification to candidate
+        if (candidate.getEmail() != null) {
+            String candidateName = candidate.getFirstName();
+            if (candidateName == null || candidateName.isBlank()) {
+                candidateName = "Candidate";
+            }
+            emailService.sendInterviewScheduledEmail(
+                    candidate.getEmail(),
+                    candidateName,
+                    interview.getScheduledAt(),
+                    interview.getInterviewer(),
+                    interview.getType()
+            );
+        }
+
         return toDto(interview);
     }
 

@@ -86,6 +86,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/quizzes/*/assign/*").hasAnyRole("ADMIN", "RECEPTIONIST")
                 .requestMatchers(HttpMethod.POST, "/api/quizzes", "/api/quizzes/").permitAll()
                 .requestMatchers("/api/quizzes", "/api/quizzes/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/ai/analyze-cv").permitAll()
                 .requestMatchers("/api/ai/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/api/dashboard/manager/**").hasAnyRole("ADMIN", "MANAGER")
 
@@ -116,7 +117,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        config.setAllowedOriginPatterns(List.of("*")); // Bulletproof CORS for local dev
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

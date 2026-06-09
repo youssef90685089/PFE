@@ -22,9 +22,9 @@ const VARIANTS = {
   default: 'bg-surface-100 text-surface-600 ring-surface-200/60',
 };
 
-export default function Badge({ status, className = '' }) {
+export default function Badge({ status, text, className = '' }) {
   const variant = VARIANTS[status] || VARIANTS.default;
-  const label = status?.replace(/_/g, ' ') || 'N/A';
+  const label = text || status?.replace(/_/g, ' ') || 'N/A';
 
   return (
     <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold ring-1 ${variant} ${className}`}>

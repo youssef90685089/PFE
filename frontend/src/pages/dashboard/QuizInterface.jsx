@@ -103,27 +103,16 @@ export default function QuizInterface() {
     setError('');
     try {
       const [qRes, rRes] = await Promise.all([
-        quizzesApi.getActive(),
+        quizzesApi.getMyQuiz(),
         quizzesApi.getMyResults(),
       ]);
-      const availableQuizzes = qRes.data?.data || qRes.data || [];
+      
+      const myQuiz = qRes.data?.data;
+      const availableQuizzes = myQuiz ? [myQuiz] : [];
       const userResults = rRes.data?.data || rRes.data || [];
       
       setQuizzes(availableQuizzes);
       setResults(userResults);
-
-      // ── Specialty Auto-Start Logic ──
-      // If we are in 'list' phase and user has a specialty, find the matching quiz
-      if (phase === 'list' && user?.specialty) {
-        const matchingQuiz = availableQuizzes.find(q => 
-          q.specialty?.toLowerCase() === user.specialty.toLowerCase()
-        );
-        
-        // If matching quiz found and not yet attempted, start it auto!
-        if (matchingQuiz && !userResults.some(r => r.quizId === matchingQuiz.id)) {
-          startQuiz(matchingQuiz);
-        }
-      }
     } catch (err) {
       setError('Failed to load quizzes. Make sure the backend is running.');
     } finally {

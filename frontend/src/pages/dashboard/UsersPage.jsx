@@ -78,7 +78,7 @@ export default function UsersPage() {
         firstName: u.firstName || '',
         lastName: u.lastName || '',
         email: u.email || '',
-        roles: u.roles || ['CANDIDATE'],
+        roles: (u.roles || ['CANDIDATE']).map(r => r.replace('ROLE_', '')),
         active: u.active ?? true,
       });
       setShowModifyModal(true);

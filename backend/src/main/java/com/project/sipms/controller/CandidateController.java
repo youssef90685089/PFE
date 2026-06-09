@@ -45,8 +45,16 @@ public class CandidateController {
         return ResponseEntity.ok(ApiResponse.ok(candidateService.getCandidateById(id)));
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST', 'MANAGER')")
+    public ResponseEntity<ApiResponse<CandidateDto>> updateCandidate(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateCandidateRequest req) {
+        return ResponseEntity.ok(ApiResponse.ok("Candidate updated", candidateService.updateCandidate(id, req)));
+    }
+
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST', 'MANAGER')")
     public ResponseEntity<ApiResponse<Void>> deleteCandidate(@PathVariable Long id) {
         candidateService.deleteCandidate(id);
         return ResponseEntity.ok(ApiResponse.ok("Candidate deleted", null));
