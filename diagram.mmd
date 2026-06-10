@@ -1,0 +1,76 @@
+flowchart LR
+    %% Actors (Left and Right)
+    subgraph Actors_Left [ ]
+        direction TB
+        Admin((Admin))
+        Manager((Manager))
+        Receptionist((Receptionist))
+    end
+
+    subgraph Actors_Right [ ]
+        direction TB
+        Candidate((Candidate))
+        AI((System / AI))
+    end
+
+    %% System Boundary
+    subgraph SIPMS [SIPMS - Smart Internship & Project Management System]
+        direction TB
+        
+        UC_Login([Authenticate / Log In])
+        UC_Register([Register Candidate])
+        UC_Internship([Add Internship File])
+        UC_Doc([Upload Document])
+        UC_Quiz([Complete Assigned Quiz])
+        UC_Rank([Generate AI Ranking])
+        UC_AssignSup([Assign Supervisor to Candidate])
+        UC_Interview([Schedule Interview])
+        UC_Email([Send Automated Email Notification])
+        UC_UploadCV([Upload CV for AI Analysis])
+        UC_UpdateApp([Update Application Status])
+    end
+
+    %% Hide the invisible actor boxes so they just act as layout columns
+    style Actors_Left fill:none,stroke:none,color:none
+    style Actors_Right fill:none,stroke:none,color:none
+
+    %% Actor to Use Case Connections (Solid Lines)
+    Admin --> UC_Login
+    
+    Receptionist --> UC_Register
+    Receptionist --> UC_Internship
+
+    Manager --> UC_AssignSup
+    Manager --> UC_Interview
+    Manager --> UC_UpdateApp
+
+    Candidate --> UC_Quiz
+    Candidate --> UC_UploadCV
+
+    AI --> UC_Rank
+    AI --> UC_Email
+
+    %% INCLUDE Relationships: Base Case -- <<include>> --> Required Case
+    UC_Register -. "<<include>>" .-> UC_Login
+    UC_Internship -. "<<include>>" .-> UC_Login
+    UC_Quiz -. "<<include>>" .-> UC_Login
+    UC_AssignSup -. "<<include>>" .-> UC_Rank
+    UC_AssignSup -. "<<include>>" .-> UC_Login
+    UC_Interview -. "<<include>>" .-> UC_Login
+    UC_UpdateApp -. "<<include>>" .-> UC_Login
+
+    %% EXTEND Relationships: Extension Case -.-> Base Case
+    UC_Doc -. "<<extend>>" .-> UC_Internship
+    UC_UploadCV -. "<<extend>>" .-> UC_Register
+    UC_Email -. "<<extend>>" .-> UC_Quiz
+    UC_Email -. "<<extend>>" .-> UC_UpdateApp
+    UC_Email -. "<<extend>>" .-> UC_Interview
+
+    %% Styling for Professional Output
+    classDef actor fill:#ffffff,stroke:#333333,stroke-width:2px,color:#000000;
+    classDef usecase fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#000000,rx:20px,ry:20px;
+    classDef system fill:#fdfdfd,stroke:#555555,stroke-width:2px,stroke-dasharray: 5 5;
+    
+    class Admin,Manager,Receptionist,Candidate,AI actor;
+    class UC_Login,UC_Register,UC_Internship,UC_Doc,UC_Quiz,UC_Rank,UC_AssignSup,UC_Interview,UC_Email,UC_UploadCV,UC_UpdateApp usecase;
+    class SIPMS system;
