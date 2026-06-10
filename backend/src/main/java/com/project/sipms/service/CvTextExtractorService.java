@@ -9,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Extracts plain text from CV files (PDF or DOCX).
@@ -18,7 +20,7 @@ import java.io.InputStream;
 public class CvTextExtractorService {
 
     /**
-     * Extract readable text from a CV file.
+     * Extract readable text from an uploaded CV file.
      *
      * @param file the uploaded MultipartFile (PDF or DOCX)
      * @return extracted plain text
@@ -34,6 +36,27 @@ public class CvTextExtractorService {
             return extractFromPdf(file.getInputStream());
         } else if (isDocx(contentType, originalFilename)) {
             return extractFromDocx(file.getInputStream());
+        } else {
+            throw new IllegalArgumentException(
+                "Unsupported file type. Please upload a PDF or DOCX file.");
+        }
+    }
+
+    /**
+     * Extract readable text from a CV file stored on disk.
+     *
+     * @param filePath the path to the stored file
+     * @return extracted plain text
+     * @throws IOException if parsing fails
+     * @throws IllegalArgumentException if the file type is unsupported
+     */
+    public String extractText(Path filePath) throws IOException {
+        String filename = filePath.getFileName().toString().toLowerCase();
+
+        if (filename.endsWith(".pdf")) {
+            return extractFromPdf(Files.newInputStream(filePath));
+        } else if (filename.endsWith(".docx") || filename.endsWith(".doc")) {
+            return extractFromDocx(Files.newInputStream(filePath));
         } else {
             throw new IllegalArgumentException(
                 "Unsupported file type. Please upload a PDF or DOCX file.");

@@ -269,15 +269,16 @@ public class LocalAiRankingStrategy implements AiRankingStrategy {
      * Main scoring function for CV ↔ Project matching.
      *
      * Score components:
-     *  A) Tag overlap score  (0–60 pts): weighted intersection of CV skills vs project tech tags
-     *  B) Description score  (0–30 pts): how many CV skills appear in the project description
-     *  C) Breadth bonus      (0–10 pts): bonus when many skills match
+     *  A) Tag overlap score       (0–50 pts): weighted intersection of CV skills vs project tech tags
+     *  B) Description text score  (0–25 pts): how many CV words appear in the project description
+     *  C) Breadth bonus           (0–10 pts): bonus when many high-value skills match
+     *  D) CV completeness score   (0–15 pts): baseline based on CV text length and richness
      */
     private double calculateCvProjectMatch(String cvText, Set<String> candidateSkills, Project project) {
-        // Parse and normalise project technology tags
         Set<String> projectTechs = parseAndNormaliseTags(project.getTechnologyTags());
+        Set<String> cvTokens = extractAllTokens(cvText);
 
-        // ── A: Tag overlap score ────────────────────────────────
+        // ── A: Tag overlap score (keyword-based, 0–50) ────────
         double tagScore = 0;
         Set<String> matchedByTag = new HashSet<>();
         if (!candidateSkills.isEmpty() && !projectTechs.isEmpty()) {
@@ -292,27 +293,63 @@ public class LocalAiRankingStrategy implements AiRankingStrategy {
                     matchedByTag.add(skill);
                 }
             }
-            tagScore = totalWeight > 0 ? (matchWeight / totalWeight) * 60.0 : 0;
+            tagScore = totalWeight > 0 ? (matchWeight / totalWeight) * 50.0 : 0;
         }
 
-        // ── B: Description text score ───────────────────────────
+        // ── A2: Broad token overlap (matches non-dictionary tags too, 0–15) ──
+        double broadTagScore = 0;
+        if (!cvTokens.isEmpty() && !projectTechs.isEmpty()) {
+            Set<String> projectTokens = extractAllTokens(String.join(" ", projectTechs));
+            if (!projectTokens.isEmpty()) {
+                long commonTokens = cvTokens.stream()
+                        .filter(projectTokens::contains)
+                        .count();
+                broadTagScore = Math.min((double) commonTokens / projectTokens.size() * 15.0, 15.0);
+            }
+        } else if (!cvTokens.isEmpty() && projectTechs.isEmpty()) {
+            String tagsRaw = project.getTechnologyTags();
+            if (tagsRaw != null && !tagsRaw.isBlank()) {
+                Set<String> rawProjectTokens = extractAllTokens(tagsRaw);
+                if (!rawProjectTokens.isEmpty()) {
+                    long commonTokens = cvTokens.stream()
+                            .filter(rawProjectTokens::contains)
+                            .count();
+                    broadTagScore = Math.min((double) commonTokens / rawProjectTokens.size() * 15.0, 15.0);
+                }
+            }
+        }
+
+        // ── B: Description text score (0–25) ──────────────────
         double descScore = 0;
         String descLower = project.getDescription() != null ? project.getDescription().toLowerCase() : "";
-        if (!descLower.isBlank() && !candidateSkills.isEmpty()) {
-            long matchCount = candidateSkills.stream()
-                    .filter(skill -> descLower.contains(skill))
-                    .count();
-            // Each matching skill worth up to 5 pts, capped at 30
-            descScore = Math.min(matchCount * 5.0, 30.0);
+        if (!descLower.isBlank() && !cvTokens.isEmpty()) {
+            Set<String> descTokens = extractAllTokens(descLower);
+            if (!descTokens.isEmpty()) {
+                long matchCount = cvTokens.stream()
+                        .filter(descTokens::contains)
+                        .count();
+                descScore = Math.min((double) matchCount / descTokens.size() * 25.0, 25.0);
+            }
         }
 
-        // ── C: Breadth bonus ────────────────────────────────────
+        // ── C: Breadth bonus (0–10) ───────────────────────────
         long highValueMatches = matchedByTag.stream()
                 .filter(s -> TECH_WEIGHTS.getOrDefault(s, 1.0) > 1.2)
                 .count();
         double breadthBonus = Math.min(highValueMatches * 3.0, 10.0);
 
-        return Math.min(tagScore + descScore + breadthBonus, 100.0);
+        // ── D: CV completeness baseline (0–10) ────────────────
+        double completeness = 0;
+        if (cvText != null && !cvText.isBlank()) {
+            int wordCount = cvText.split("\\s+").length;
+            if (wordCount > 200) completeness = 10.0;
+            else if (wordCount > 100) completeness = 7.0;
+            else if (wordCount > 50) completeness = 5.0;
+            else if (wordCount > 20) completeness = 3.0;
+        }
+
+        double total = tagScore + broadTagScore + descScore + breadthBonus + completeness;
+        return Math.min(total, 100.0);
     }
 
     /**
@@ -322,6 +359,7 @@ public class LocalAiRankingStrategy implements AiRankingStrategy {
      *  1. Apply synonym map first to catch multi-word phrases ("machine learning", "random forest", etc.)
      *  2. Then scan each word/token against TECH_WEIGHTS keys.
      *  3. Normalise aliases (js → javascript, ml → machine learning, etc.)
+     *  4. Also collect all significant tokens as potential skills for broader matching.
      */
     private Set<String> extractSkillsFromCvText(String cvText) {
         if (cvText == null || cvText.isBlank()) return Set.of();
@@ -349,6 +387,8 @@ public class LocalAiRankingStrategy implements AiRankingStrategy {
         // Pass 3: tokenise CV and resolve single-token synonyms
         String[] tokens = lower.split("[\\s,;/\\-\\(\\)\\[\\]]+");
         for (String token : tokens) {
+            token = token.trim();
+            if (token.length() < 2) continue;
             String canonical = SYNONYMS.getOrDefault(token, token);
             if (TECH_WEIGHTS.containsKey(canonical)) {
                 detected.add(canonical);
@@ -357,6 +397,37 @@ public class LocalAiRankingStrategy implements AiRankingStrategy {
 
         return detected;
     }
+
+    /**
+     * Extracts ALL significant tokens from CV text (beyond just tech keywords).
+     * Used for broad text-level matching against project descriptions and tags.
+     */
+    private Set<String> extractAllTokens(String text) {
+        if (text == null || text.isBlank()) return Set.of();
+        Set<String> tokens = new LinkedHashSet<>();
+        String lower = text.toLowerCase();
+        String[] parts = lower.split("[\\s,;/\\-\\(\\)\\[\\]\\.:!?\"']+");
+        for (String t : parts) {
+            t = t.trim();
+            if (t.length() >= 3 && !STOP_WORDS.contains(t)) {
+                tokens.add(t);
+            }
+        }
+        return tokens;
+    }
+
+    private static final Set<String> STOP_WORDS = Set.of(
+        "the", "and", "for", "are", "but", "not", "you", "all", "can", "had", "her",
+        "was", "one", "our", "out", "has", "have", "been", "this", "that", "with",
+        "from", "they", "will", "would", "could", "should", "their", "them", "then",
+        "also", "very", "just", "about", "over", "such", "each", "your",
+        "which", "what", "when", "where", "more", "some", "these", "into", "its",
+        "after", "before", "between", "through", "during", "because",
+        "there", "being", "made", "make", "well", "most", "much", "many",
+        "new", "using", "used", "use", "based", "work", "worked", "working",
+        "experience", "skilled", "skill", "skills", "including",
+        "various", "within", "without", "along"
+    );
 
     /**
      * Parse technology tags stored in the DB.

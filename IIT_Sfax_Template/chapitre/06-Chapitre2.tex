@@ -17,15 +17,15 @@ This chapter formalizes the requirements of the SIPMS platform. We identify all 
 \rowcolor{gray!20}
 \textbf{Actor} & \textbf{Description} \\
 \hline
-Administrator & Full system control: manages all users, roles, configurations, and audit logs. \\
+Administrator & Full system control: manages all users, roles, projects, supervisors, configurations, audit logs, and AI insights. \\
 \hline
-Manager & Oversees application lifecycle, assigns supervisors, and monitors AI rankings. \\
+Manager & Oversees full application lifecycle (status transitions), creates quizzes, schedules interviews, assigns supervisors, manages projects, monitors AI rankings and candidate matching. \\
 \hline
-Receptionist & Registers candidates, uploads documents, filters by year/specialty, assigns quizzes. \\
+Receptionist & Registers candidates in the dedicated Reception Panel, adds per-year internship files with optional document upload, registers physical applications, searches and filters candidates. \\
 \hline
-Candidate & Completes profile, takes quizzes, submits applications, tracks status. \\
+Candidate & Self-registers, completes profile, submits online applications, takes timed quizzes, uploads CV for AI analysis, views project matches and roadmap, tracks application status. \\
 \hline
-Supervisor & Views assigned interns and coordinates project progress with the manager. \\
+Supervisor & Views assigned interns, has defined expertise tags and capacity limits used by AI matching engine. \\
 \hline
 \end{tabular}
 \caption{System actors and their roles}
@@ -46,28 +46,52 @@ Supervisor & Views assigned interns and coordinates project progress with the ma
 \subsection{Reception and Candidate Management}
 \begin{itemize}[leftmargin=2cm, topsep=0pt]
     \begin{spacing}{1.25}
-        \item Receptionists register candidates with personal info (name, email, phone, CIN, specialty, internship year).
-        \item Multiple documents are uploadable per candidate: CV, cover letter, transcript, ID card.
-        \item Candidates are filterable by year and specialty in the reception panel.
-        \item A quiz is automatically assigned to each newly registered candidate.
+        \item Receptionists register candidates with personal info (firstName, lastName, email, phone, CIN).
+        \item Multiple internship files are addable per candidate, one per academic year, with year, university, degree, skills tags.
+        \item Optional document upload (PDF/DOCX) per internship file: CV, cover letter, transcript, ID card, photo.
+        \item Candidates are searchable by name/email and filterable by internship year in the reception panel.
+        \item A dedicated Reception Panel page provides all candidate management in one place.
     \end{spacing}
 \end{itemize}
 
 \subsection{Quiz and Evaluation}
 \begin{itemize}[leftmargin=2cm, topsep=0pt]
     \begin{spacing}{1.25}
-        \item Admins create quizzes with multiple-choice questions and configurable time limits.
+        \item Admins/Managers create quizzes with multiple-choice questions (A/B/C/D), configurable duration (default 30 min), passing score (default 60\%), and optional specialty tag (Web, Security, Power BI).
+        \item Managers can approve a candidate and either assign an existing quiz or auto-generate a default 5-question MCQ quiz.
         \item A countdown timer is displayed during the quiz; auto-submission occurs on expiry.
-        \item Scores are automatically calculated and candidate status updated accordingly.
-        \item Real-time automated notifications are sent to the Manager immediately upon quiz submission.
+        \item Scores are automatically calculated by comparing answers to correct options.
+        \item Application status advances to QUIZ\_COMPLETED after submission; notifications are triggered.
     \end{spacing}
 \end{itemize}
 
-\subsection{Project Configuration}
+\subsection{Project Management}
 \begin{itemize}[leftmargin=2cm, topsep=0pt]
     \begin{spacing}{1.25}
-        \item Managers and Admins can configure projects with titles, descriptions, and technology tags.
-        \item Candidates can propose projects which are then evaluated by the AI engine.
+        \item Managers and Admins can create, edit, delete, and change the status of projects (DRAFT, SUBMITTED, APPROVED, REJECTED).
+        \item Projects include title, description, domain, technology tags, required skills, and an optional AI score.
+        \item A supervisor can be assigned to each project to oversee its execution.
+        \item Candidates can view available projects and submit applications to their preferred ones.
+    \end{spacing}
+\end{itemize}
+
+\subsection{Application Lifecycle}
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item Candidates submit online applications or receptionists register physical dossiers.
+        \item Applications follow a deterministic state machine: PENDING $\rightarrow$ UNDER\_REVIEW $\rightarrow$ QUIZ\_PENDING $\rightarrow$ QUIZ\_COMPLETED $\rightarrow$ AI\_EVALUATING $\rightarrow$ MANAGER\_REVIEW $\rightarrow$ ACCEPTED/REJECTED.
+        \item Each transition is validated; invalid transitions are rejected by the system.
+        \item Managers can add notes and assign supervisors to applications, respecting supervisor capacity constraints.
+    \end{spacing}
+\end{itemize}
+
+\subsection{Interview Management}
+\begin{itemize}[leftmargin=2cm, topsep=0pt]
+    \begin{spacing}{1.25}
+        \item Managers schedule interviews (TECHNICAL or HR) for candidates who have passed the quiz.
+        \item Interview scheduling is gated: candidates who failed the quiz cannot be scheduled.
+        \item Managers record results with score, notes, and feedback, updating status to COMPLETED.
+        \item All interviews are viewable in a dedicated interview management page with status badges.
     \end{spacing}
 \end{itemize}
 
@@ -80,22 +104,22 @@ The application lifecycle is governed by a deterministic finite state machine. E
 \begin{verbatim}
 Status Flow:
   PENDING
-    → UNDER_REVIEW        (when receptionist completes initial registration)
-    → QUIZ_PENDING        (when manager approves and sends quiz)
-    → QUIZ_COMPLETED      (when candidate submits quiz OR timer expires)
-    → AI_EVALUATING       (system triggers AI ranking automatically)
-    → MANAGER_REVIEW      (when AI evaluation completes)
-    → ACCEPTED            (manager decision: score ≥ passing AND interview passed)
-    → REJECTED            (manager decision: score < passing OR interview failed)
+    -> UNDER_REVIEW        (when receptionist completes initial registration)
+    -> QUIZ_PENDING        (when manager approves and sends quiz)
+    -> QUIZ_COMPLETED      (when candidate submits quiz OR timer expires)
+    -> AI_EVALUATING       (system triggers AI ranking automatically)
+    -> MANAGER_REVIEW      (when AI evaluation completes)
+    -> ACCEPTED            (manager decision: score >= passing AND interview passed)
+    -> REJECTED            (manager decision: score < passing OR interview failed)
 
 Transition Guards:
-  PENDING → UNDER_REVIEW:       candidate profile complete (firstName, lastName, email)
-  UNDER_REVIEW → QUIZ_PENDING:  manager approved AND quiz assigned
-  QUIZ_PENDING → QUIZ_COMPLETED: candidate submitted answers OR 48h timer expired
-  QUIZ_COMPLETED → AI_EVALUATING: score ≥ 60% (auto-triggered after grading)
-  AI_EVALUATING → MANAGER_REVIEW: AI score persisted (auto-triggered after AI ranking)
-  MANAGER_REVIEW → ACCEPTED:     manager decision = ACCEPT
-  MANAGER_REVIEW → REJECTED:     manager decision = REJECT
+  PENDING -> UNDER_REVIEW:       candidate profile complete (firstName, lastName, email)
+  UNDER_REVIEW -> QUIZ_PENDING:  manager approved AND quiz assigned
+  QUIZ_PENDING -> QUIZ_COMPLETED: candidate submitted answers OR 48h timer expired
+  QUIZ_COMPLETED -> AI_EVALUATING: score >= 60% (auto-triggered after grading)
+  AI_EVALUATING -> MANAGER_REVIEW: AI score persisted (auto-triggered after AI ranking)
+  MANAGER_REVIEW -> ACCEPTED:     manager decision = ACCEPT
+  MANAGER_REVIEW -> REJECTED:     manager decision = REJECT
 \end{verbatim}
 \end{spacing}
 
@@ -145,7 +169,7 @@ AI Evaluation & 4.2 sec & 100\% & Server-side processing; no user wait \\
 \hline
 Manager Review & 1.8 days & 78\% accepted & 22\% rejected (score or interview) \\
 \hline
-\textbf{End-to-End} & \textbf{2.1 days} & \textbf{72\%} & Registration → Final Decision \\
+\textbf{End-to-End} & \textbf{2.1 days} & \textbf{72\%} & Registration $\to$ Final Decision \\
 \hline
 \end{tabular}
 \caption{Lifecycle benchmark results (n=50 simulated candidates)}
@@ -187,6 +211,31 @@ Scalability & Architecture supports adding new modules and roles without breakin
 \caption{Non-functional requirements of SIPMS}
 \end{table}
 
+\section{SYSTEM DECOMPOSITION}
+
+The SIPMS platform is decomposed into five main modules, each responsible for a distinct set of features. This modular architecture ensures separation of concerns, independent testability, and ease of future maintenance.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{10cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Module} & \textbf{Description} \\
+\hline
+Authentication Module & Handles user login and registration via JWT-based stateless authentication, enforces Role-Based Access Control (RBAC) across all endpoints, manages password changes with BCrypt hashing, and issues access/refresh tokens with configurable expiry. \\
+\hline
+Candidate Management Module & Manages the full candidate lifecycle from physical reception to approval. Includes candidate CRUD, per-year internship files with optional document upload, search and filtering, account creation on manager approval, and quiz assignment. \\
+\hline
+Quiz Module & Allows managers to create and manage quizzes with multiple-choice questions, configurable duration and passing scores, and optional specialty tags. Candidates can view assigned quizzes, complete them within a timed session with automatic scoring, and receive immediate pass/fail results. \\
+\hline
+AI Module & Provides intelligent decision support through project ranking, candidate-to-supervisor matching, CV text analysis with skill extraction, project match scoring, and personalized roadmap generation using weighted algorithms. \\
+\hline
+Interview Module & Enables managers to schedule interviews (TECHNICAL or HR) for candidates who passed the quiz, record scores and feedback, and track interview status across the full SCHEDULED $\to$ COMPLETED/CANCELLED workflow. \\
+\hline
+\end{tabular}
+\caption{System decomposition into modules}
+\end{table}
+
 \section{USE CASE MODELING}
 
 \begin{figure}[H]
@@ -225,7 +274,7 @@ Exception & Duplicate email triggers error message \\
 \rowcolor{gray!20}
 \textbf{Field} & \textbf{Description} \\
 \hline
-Use Case & Take a Quiz \\
+Use Case & Complete Assigned Quiz \\
 \hline
 Actor & Candidate \\
 \hline
@@ -238,7 +287,7 @@ Postcondition & Score recorded; status updated \\
 Exception & Timer expiry triggers automatic submission \\
 \hline
 \end{tabular}
-\caption{Use case: Take a quiz}
+\caption{Use case: Complete Assigned Quiz}
 \end{table}
 
 \begin{table}[H]
@@ -248,7 +297,7 @@ Exception & Timer expiry triggers automatic submission \\
 \rowcolor{gray!20}
 \textbf{Field} & \textbf{Description} \\
 \hline
-Use Case & AI-Powered Project Ranking \\
+Use Case & Generate AI Ranking \\
 \hline
 Actor & System (AI Module), Manager \\
 \hline
@@ -258,10 +307,10 @@ Main Scenario & 1. System triggers AI evaluation after quiz completion \newline 
 \hline
 Postcondition & AI scores persisted; candidates ordered by relevance \\
 \hline
-Exception & AI API unavailable → system logs error, manager notified, manual ranking fallback \\
+Exception & AI API unavailable -- system logs error, manager notified, manual ranking fallback \\
 \hline
 \end{tabular}
-\caption{Use case: AI-powered project ranking}
+\caption{Use case: Generate AI Ranking}
 \end{table}
 
 \begin{table}[H]
@@ -281,7 +330,7 @@ Main Scenario & 1. Manager reviews candidate profile, quiz score, and AI match r
 \hline
 Postcondition & Supervisor assigned; capacity updated; notification sent to supervisor \\
 \hline
-Exception & All supervisors at max capacity → manager alerted, candidate placed in waiting pool \\
+Exception & All supervisors at max capacity -- manager alerted, candidate placed in waiting pool \\
 \hline
 \end{tabular}
 \caption{Use case: Assign supervisor to candidate}
@@ -304,7 +353,7 @@ Main Scenario & 1. Manager selects a candidate who passed the quiz \newline 2. M
 \hline
 Postcondition & Interview completed; candidate status advanced \\
 \hline
-Exception & Candidate failed quiz → System blocks interview scheduling \\
+Exception & Candidate failed quiz -- System blocks interview scheduling \\
 \hline
 \end{tabular}
 \caption{Use case: Schedule and record interview}
@@ -327,11 +376,57 @@ Main Scenario & 1. Trigger event fires in the application \newline 2. System con
 \hline
 Postcondition & Email delivered; notification record created \\
 \hline
-Exception & SMTP authentication failure → system retries up to 3 times with 5-second interval; if all retries fail, error is logged and admin is alerted \\
+Exception & SMTP authentication failure $\rightarrow$ system retries up to 3 times with 5-second interval; if all retries fail, error is logged and admin is alerted \\
 \hline
 \end{tabular}
 \caption{Use case: Send automated email notification}
 \end{table}
 
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Field} & \textbf{Description} \\
+\hline
+Use Case & Manage Projects \\
+\hline
+Actor & Admin, Manager \\
+\hline
+Precondition & Actor is authenticated with ADMIN or MANAGER role \\
+\hline
+Main Scenario & 1. Navigate to Projects page \newline 2. View all projects in a data table \newline 3. Click ``Add Project'' to create a new project with title, description, domain, technology tags \newline 4. Click ``Edit'' to modify an existing project \newline 5. Click ``Delete'' to remove a project after confirmation \\
+\hline
+Postcondition & Project created, updated, or deleted \\
+\hline
+Exception & Deleting a project linked to an active application is blocked \\
+\hline
+\end{tabular}
+\caption{Use case: Manage projects}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{9cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Field} & \textbf{Description} \\
+\hline
+Use Case & Upload CV for AI Analysis \\
+\hline
+Actor & Candidate \\
+\hline
+Precondition & Candidate is authenticated with CANDIDATE role \\
+\hline
+Main Scenario & 1. Navigate to CV Upload page \newline 2. Drag and drop or select a PDF/DOCX file \newline 3. System uploads file and sends to AI analysis endpoint \newline 4. AI extracts skills from CV text \newline 5. AI matches skills against available projects with relevance scores \newline 6. AI generates a 4-week project roadmap \newline 7. Results displayed: detected skills, ranked project matches, roadmap \\
+\hline
+Postcondition & CV analyzed; matches and roadmap displayed \\
+\hline
+Exception & Invalid file type $\rightarrow$ error message; AI API unavailable $\rightarrow$ fallback message \\
+\hline
+\end{tabular}
+\caption{Use case: Upload CV for AI analysis}
+\end{table}
+
 \section{CONCLUSION}
-This chapter provided a complete specification of the SIPMS platform requirements. The actor identification, structured requirements, and use case models serve as the design foundation addressed in the next chapter.
+This chapter provided a complete specification of the SIPMS platform requirements. Four system actors were identified — Administrator, Manager, Receptionist, and Candidate — each with clearly defined responsibilities enforced by Role-Based Access Control. The system was decomposed into five functional modules (Authentication, Candidate Management, Quiz, AI, and Interview), each encapsulating a distinct business capability with well-defined boundaries. A total of eight use cases were formally specified with preconditions, main scenarios, postconditions, and exception paths, covering the full spectrum of system interactions from candidate registration to AI-powered ranking and interview scheduling. Non-functional requirements addressing security, performance, usability, reliability, maintainability, and scalability were also formalised. Together, these specifications constitute the design foundation implemented in the chapters that follow.

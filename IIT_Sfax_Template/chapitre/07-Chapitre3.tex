@@ -72,7 +72,10 @@ Authentication in SIPMS is stateless and JWT-based. The security flow operates a
 \section{CLASS DIAGRAM}
 
 \subsection{Core Entity Relationships}
-The domain model consists of the following main entities with their attributes and relationships:
+The domain model consists of 16 entities organised into three subsystems: Core Domain, Quiz Subsystem, and AI Subsystem. The class diagram is decomposed into subsystems to enhance readability and maintain modularity. Each entity corresponds directly to a database table and is involved in at least one use case scenario defined in Chapter 2.
+
+\subsubsection{Core Domain Subsystem}
+The core domain subsystem includes the primary business entities that handle authentication, candidate management, applications, and supervision:
 
 \begin{table}[H]
 \centering
@@ -82,36 +85,68 @@ The domain model consists of the following main entities with their attributes a
 \rowcolor{gray!20}
 \textbf{Entity} & \textbf{Key Attributes} & \textbf{Relationships} \\
 \hline
-\textbf{User} & id, firstName, lastName, email, passwordHash, active, mustChangePassword, createdAt & ManyToMany $\rightarrow$ Role; OneToOne $\leftarrow$ Candidate (optional) \\
+\textbf{User} & id, firstName, lastName, email, passwordHash, phone, cin, avatarUrl, active, mustChangePassword, specialty, internshipYear, status, quizScore, createdAt, updatedAt & ManyToMany $\rightarrow$ Role; OneToOne $\leftarrow$ Candidate (optional); OneToMany $\rightarrow$ Notification; OneToMany $\rightarrow$ AuditLog; OneToMany $\rightarrow$ Document (uploadedBy) \\
 \hline
 \textbf{Role} & id, name (ADMIN, MANAGER, RECEPTIONIST, CANDIDATE) & ManyToMany $\leftarrow$ User \\
 \hline
-\textbf{Candidate} & id, firstName, lastName, email, phone, cin, createdAt & OneToOne $\rightarrow$ User (optional); OneToMany $\rightarrow$ InternshipFile \\
+\textbf{Candidate} & id, firstName, lastName, email, phone, cin, assignedQuizId, createdAt, updatedAt & OneToOne $\rightarrow$ User (optional); OneToMany $\rightarrow$ InternshipFile (EAGER); OneToMany $\rightarrow$ Application; OneToMany $\rightarrow$ QuizAttempt; OneToMany $\rightarrow$ Interview \\
 \hline
-\textbf{InternshipFile} & id, year, university, degree, skillsTags, createdAt & ManyToOne $\rightarrow$ Candidate; OneToMany $\rightarrow$ Document \\
+\textbf{InternshipFile} & id, year, university, degree, skillsTags, createdAt, updatedAt & ManyToOne $\rightarrow$ Candidate; OneToMany $\rightarrow$ Document \\
 \hline
-\textbf{Document} & id, fileName, filePath, fileType, fileSize, documentType, createdAt & ManyToOne $\rightarrow$ Application (optional); ManyToOne $\rightarrow$ InternshipFile (optional); ManyToOne $\rightarrow$ User (uploadedBy) \\
+\textbf{Document} & id, fileName, filePath, fileType, fileSize, documentType (CV, COVER\_LETTER, TRANSCRIPT, ID\_CARD, PHOTO, OTHER), createdAt & ManyToOne $\rightarrow$ Application (optional); ManyToOne $\rightarrow$ InternshipFile (optional); ManyToOne $\rightarrow$ User (uploadedBy) \\
 \hline
-\textbf{Application} & id, intakeMethod, status, managerNotes, aiMatchScore, createdAt & ManyToOne $\rightarrow$ Candidate; ManyToOne $\rightarrow$ Project; ManyToOne $\rightarrow$ Supervisor; ManyToOne $\rightarrow$ User (registeredBy) \\
+\textbf{Application} & id, intakeMethod (ONLINE, PHYSICAL), status (8-state DFA), managerNotes, aiMatchScore, decisionDate, createdAt, updatedAt & ManyToOne $\rightarrow$ Candidate (EAGER); ManyToOne $\rightarrow$ Project; ManyToOne $\rightarrow$ Supervisor; ManyToOne $\rightarrow$ User (registeredBy) \\
 \hline
-\textbf{Supervisor} & id, fullName, email, department, expertiseTags, maxInterns, currentInterns, active & OneToOne $\rightarrow$ User; OneToMany $\leftarrow$ Application \\
+\textbf{Supervisor} & id, fullName, email, department, expertiseTags, maxInterns (default 3), currentInterns, bio, active, createdAt & OneToOne $\rightarrow$ User; OneToMany $\rightarrow$ Project; OneToMany $\rightarrow$ Application \\
 \hline
-\textbf{Project} & id, title, description, domain, technologyTags, aiScore, status & ManyToOne $\rightarrow$ User (submittedBy); ManyToOne $\rightarrow$ Supervisor \\
+\textbf{Project} & id, title, description, domain, technologyTags, requiredSkills, aiScore, status (DRAFT, SUBMITTED, APPROVED, REJECTED), createdAt, updatedAt & ManyToOne $\rightarrow$ User (submittedBy); ManyToOne $\rightarrow$ Supervisor \\
 \hline
-\textbf{Quiz} & id, title, description, durationMins, passingScore, totalMarks, specialty, active & ManyToOne $\rightarrow$ User (createdBy); OneToMany $\rightarrow$ QuizQuestion \\
+\textbf{Interview} & id, scheduledAt, interviewer, type (TECHNICAL/HR), status (SCHEDULED/COMPLETED/CANCELLED), score, notes, feedback, createdAt, updatedAt & ManyToOne $\rightarrow$ Candidate; ManyToOne $\rightarrow$ Application \\
 \hline
-\textbf{QuizQuestion} & id, questionText, optionA, optionB, optionC, optionD, correctOption, marks, orderIndex & ManyToOne $\rightarrow$ Quiz \\
+\textbf{Notification} & id, title, message, type (INFO/SUCCESS/WARNING/ERROR), isRead, link, createdAt & ManyToOne $\rightarrow$ User \\
+\hline
+\textbf{AuditLog} & id, action, entityType, entityId, details, ipAddress, createdAt & ManyToOne $\rightarrow$ User \\
+\hline
+\end{tabular}
+\caption{Core domain subsystem entities}
+\end{table}
+
+\subsubsection{Quiz Subsystem}
+The quiz subsystem manages assessment creation, question banks, and candidate attempt tracking:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|p{2.5cm}|p{4cm}|p{6.5cm}|}
+\hline
+\rowcolor{gray!20}
+\textbf{Entity} & \textbf{Key Attributes} & \textbf{Relationships} \\
+\hline
+\textbf{Quiz} & id, title, description, durationMins (default 30), passingScore (default 60), totalMarks (default 100), specialty, active, createdAt & ManyToOne $\rightarrow$ User (createdBy); OneToMany $\rightarrow$ QuizQuestion; OneToMany $\rightarrow$ QuizAttempt \\
+\hline
+\textbf{QuizQuestion} & id, questionText, optionA, optionB, optionC, optionD, correctOption (A/B/C/D), marks (default 5), orderIndex & ManyToOne $\rightarrow$ Quiz \\
 \hline
 \textbf{QuizAttempt} & id, score, totalMarks, percentage, passed, startedAt, completedAt & ManyToOne $\rightarrow$ Quiz; ManyToOne $\rightarrow$ Candidate; ManyToOne $\rightarrow$ Application; OneToMany $\rightarrow$ QuizAnswer \\
 \hline
-\textbf{Interview} & id, scheduledAt, interviewer, type, status, score, notes, feedback, createdAt & ManyToOne $\rightarrow$ Candidate; ManyToOne $\rightarrow$ Application \\
+\end{tabular}
+\caption{Quiz subsystem entities}
+\end{table}
+
+\subsubsection{AI Subsystem}
+The AI subsystem stores the outputs of intelligent ranking and matching operations:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|p{2.5cm}|p{4cm}|p{6.5cm}|}
 \hline
-\textbf{Notification} & id, title, message, type, isRead, link, createdAt & ManyToOne $\rightarrow$ User \\
+\rowcolor{gray!20}
+\textbf{Entity} & \textbf{Key Attributes} & \textbf{Relationships} \\
 \hline
-\textbf{AiRanking} & id, rankingType (PROJECT\_RANK, CANDIDATE\_MATCH), referenceId, score (0.0--1.0), reasoning (AI explanation), createdAt & ManyToOne $\rightarrow$ Supervisor (optional); ManyToOne $\rightarrow$ User (rankedBy) \\
+\textbf{AiRanking} & id, rankingType (PROJECT\_RANK, CANDIDATE\_MATCH), referenceId, score (0.0--1.0), reasoning (AI explanation text), createdAt & ManyToOne $\rightarrow$ Supervisor (optional); ManyToOne $\rightarrow$ User (rankedBy) \\
 \hline
 \end{tabular}
-\caption{Complete entity list with attributes and relationships}
+\caption{AI subsystem entities}
 \end{table}
 
 \subsection{Relationship Diagram}
@@ -120,12 +155,13 @@ The key relationships between entities are summarized as follows:
 \begin{verbatim}
 User *-- Role (ManyToMany)
 Candidate "1" --> "0..1" User (optional OneToOne)
-Candidate "1" *--> "0..*" InternshipFile (OneToMany)
+Candidate "1" *--> "0..*" InternshipFile (OneToMany, EAGER)
 InternshipFile "1" *--> "0..*" Document (OneToMany)
 Application "1" --> "0..*" Document (OneToMany)
 Candidate "1" *--> "0..*" Application (OneToMany)
 Application "1" --> "0..1" Project (ManyToOne)
 Application "1" --> "0..1" Supervisor (ManyToOne)
+Application "1" --> "0..1" User (registeredBy)
 Supervisor "1" *--> "0..*" Project (OneToMany)
 Supervisor "1" --> "0..1" User (OneToOne)
 Quiz "1" *--> "0..*" QuizQuestion (OneToMany)
@@ -136,8 +172,27 @@ Candidate "1" *--> "0..*" Interview (OneToMany)
 Application "1" *--> "0..*" Interview (OneToMany)
 User "1" *--> "0..*" Quiz (createdBy)
 User "1" *--> "0..*" Notification (OneToMany)
+User "1" *--> "0..*" AuditLog (OneToMany)
 Supervisor "1" --> "0..*" AiRanking (OneToMany)
 User "1" --> "0..*" AiRanking (rankedBy)
+\end{verbatim}
+
+Beyond data-level entity relationships, the system also defines the following \texttt{<<include>>} and \texttt{<<extend>>} relationships between use cases, capturing functional dependencies and optional extensions:
+
+\begin{verbatim}
+--- Include Relationships (mandatory) ---
+Login                  <<include>>   Complete Assigned Quiz
+Login                  <<include>>   Register Candidate
+Login                  <<include>>   Upload CV for AI Analysis
+Complete Assigned Quiz <<include>>   Generate AI Ranking
+Complete Assigned Quiz <<include>>   Schedule Interview
+Generate AI Ranking    <<include>>   Assign Supervisor to Candidate
+
+--- Extend Relationships (optional) ---
+Register Candidate     <<extend>>    Upload CV for AI Analysis
+Complete Assigned Quiz <<extend>>    Send Automated Email Notification
+Update Application     <<extend>>    Send Automated Email Notification
+Schedule Interview     <<extend>>    Send Automated Email Notification
 \end{verbatim}
 
 \begin{figure}[H]
@@ -192,10 +247,10 @@ The \texttt{AiRanking} entity stores the output of AI-based ranking operations:
 The AI scoring follows a weighted formula:
 
 \begin{verbatim}
-AI Match Score = w1 × skillOverlap + w2 × quizPerformance + w3 × academicLevel
+AI Match Score = w1 x skillOverlap + w2 x quizPerformance + w3 x academicLevel
 
 Where:
-  skillOverlap    = |candidateSkills ∩ projectSkills| / |projectSkills|
+  skillOverlap    = |candidateSkills and projectSkills| / |projectSkills|
   quizPerformance = QuizAttempt.percentage / 100
   academicLevel   = degreeLevel / maxDegreeLevel
 
@@ -206,19 +261,20 @@ These scores are computed by the \texttt{AiService} which delegates to the confi
 
 \section{SEQUENCE DIAGRAMS}
 
+Five sequence diagrams are presented in this section to illustrate the dynamic behaviour of the SIPMS platform. Each diagram corresponds to one or more use cases defined in Chapter 2 and models the interactions between actors, frontend components, backend services, and the database.
+
 \subsection{Sequence: Candidate Registration with Internship File Upload}
-This sequence describes the complete candidate registration and document upload flow performed by the receptionist. This sequence diagram corresponds to Use Case: \textbf{Register a New Candidate} and \textbf{Add Internship File with Document}.
+This sequence describes the complete candidate registration and document upload flow performed by the receptionist. It corresponds to the use cases \textbf{Register a New Candidate} and \textbf{Add Internship File with Document}.
 
 \begin{enumerate}
-    \item Receptionist fills the candidate form (firstName, lastName, email, phone, CIN) and submits via the React frontend.
-    \item \texttt{POST /api/candidates} is called with the candidate data as JSON.
-    \item \texttt{CandidateService.createCandidate()} saves the candidate to the database and returns the created record.
-    \item Receptionist then opens the internship file form and selects year, university, degree, skills tags, and optionally a PDF document.
-    \item \texttt{POST /api/candidates/\{id\}/internship-files/with-document} is called with multipart form data.
-    \item \texttt{FileStorageService.storeFile()} saves the document to \texttt{./uploads/candidates/\{id\}/} with a UUID-based filename.
-    \item An \texttt{InternshipFile} entity is persisted with the candidate relationship.
-    - If a file was uploaded, a \texttt{Document} entity is also persisted and linked to the \texttt{InternshipFile}.
-    \item The frontend refreshes the candidates table and internship files list.
+    \item The receptionist fills the candidate form (firstName, lastName, email, phone, CIN) and submits it via the React frontend.
+    \item The frontend calls \texttt{POST /api/candidates} with the candidate data as a JSON payload.
+    \item \texttt{CandidateService.createCandidate()} validates the input, persists the \texttt{Candidate} entity to the database, and returns the created record with its generated identifier.
+    \item The receptionist then opens the internship file form and enters the year, university, degree, and skills tags. Optionally, a PDF document may be attached.
+    \item The frontend calls \texttt{POST /api/candidates/\{id\}/internship-files/with-document} using multipart form data to transmit both the metadata and the uploaded file.
+    \item \texttt{FileStorageService.storeFile()} saves the uploaded document to \texttt{./uploads/candidates/\{id\}/} with a UUID-based filename to prevent path traversal and naming collisions.
+    \item An \texttt{InternshipFile} entity is persisted and linked to the candidate. If a file was uploaded, a \texttt{Document} entity is also persisted and associated with the \texttt{InternshipFile}.
+    \item The frontend refreshes the candidates table and the internship files list to reflect the newly added data.
 \end{enumerate}
 
 \begin{figure}[H]
@@ -228,29 +284,33 @@ This sequence describes the complete candidate registration and document upload 
 \end{figure}
 
 \subsection{Sequence: Approve Candidate and Send Quiz}
-This sequence diagram corresponds to Use Case: \textbf{Approve and Send Quiz} (User Story US-18).
+This sequence corresponds to the use case \textbf{Approve and Send Quiz} (User Story US-18) and models the manager's approval workflow.
+
 \begin{enumerate}
-    \item Manager selects a candidate and clicks "Approve \& Send Quiz" in the Candidates page.
-    \item The \texttt{QuizSelectionModal} opens, loading existing quizzes from \texttt{GET /api/quizzes}.
-    \item Manager either selects an existing quiz or chooses to create a default 5-question quiz.
-    \item \texttt{POST /api/candidates/\{id\}/approve-and-send-quiz} is called with an optional \texttt{quizId}.
-    \item \texttt{CandidateService.approveAndSendQuiz()} performs the following:
-        a) Creates a \texttt{User} account for the candidate with a BCrypt-hashed temporary password.
-        b) If \texttt{quizId} is provided, creates a \texttt{QuizAttempt} linking the candidate to the existing quiz.
-        c) If no \texttt{quizId}, creates a new \texttt{Quiz} with 5 default MCQs, then creates the \texttt{QuizAttempt}.
-        d) Sends an HTML email via Gmail SMTP containing login credentials and the quiz title.
-    \item The frontend refreshes and displays the candidate with an active user account.
+    \item The manager selects a candidate from the candidates table and clicks "Approve \& Send Quiz".
+    \item The \texttt{QuizSelectionModal} opens and loads existing quizzes via \texttt{GET /api/quizzes} for the manager to choose from.
+    \item The manager either selects an existing quiz from the list or opts to create a default 5-question MCQ quiz.
+    \item The frontend calls \texttt{POST /api/candidates/\{id\}/approve-and-send-quiz} with an optional \texttt{quizId} in the request body.
+    \item \texttt{CandidateService.approveAndSendQuiz()} performs the following steps transactionally:
+        \begin{enumerate}
+            \item Creates a \texttt{User} account for the candidate with a BCrypt-hashed temporary password and sets the \texttt{mustChangePassword} flag.
+            \item If a \texttt{quizId} was provided, creates a \texttt{QuizAttempt} linking the candidate to the existing quiz.
+            \item If no \texttt{quizId} was provided, creates a new \texttt{Quiz} containing 5 default MCQs, then creates the corresponding \texttt{QuizAttempt}.
+            \item Sends an HTML email via Gmail SMTP containing the candidate's login credentials and the assigned quiz title.
+        \end{enumerate}
+    \item The frontend refreshes the candidates view, displaying the candidate with an active user account and an assigned quiz status.
 \end{enumerate}
 
 \subsection{Sequence: Interview Scheduling and Result Recording}
-This sequence diagram corresponds to Use Case: \textbf{Schedule Interview} and \textbf{Record Interview Result} (User Stories US-19 and US-20).
+This sequence corresponds to the use cases \textbf{Schedule Interview} and \textbf{Record Interview Result} (User Stories US-19 and US-20).
+
 \begin{enumerate}
-    \item Manager identifies a candidate whose application is in \texttt{QUIZ\_COMPLETED} status AND who has passed the quiz (\texttt{passed = true}).
-    \item Manager clicks "Schedule Interview" and fills the form (date/time, interviewer name, type: TECHNICAL or HR).
-    \item \texttt{POST /api/interviews} is called with candidateId, applicationId, scheduledAt, interviewer, type.
-    \item \texttt{InterviewService.createInterview()} saves the interview with status \texttt{SCHEDULED}.
-    \item The interview appears in the interview management page.
-    \item After the interview, Manager records the result via \texttt{PUT /api/interviews/\{id\}/result} with score, notes, and feedback. Status is updated to \texttt{COMPLETED}.
+    \item The manager identifies a candidate whose application is in \texttt{QUIZ\_COMPLETED} status and who has passed the quiz (\texttt{passed = true}).
+    \item The manager clicks "Schedule Interview" and fills the scheduling form with a date and time, interviewer name, and interview type (TECHNICAL or HR).
+    \item The frontend calls \texttt{POST /api/interviews} with the candidate identifier, application identifier, scheduled timestamp, interviewer, and type.
+    \item \texttt{InterviewService.createInterview()} validates the scheduling constraints and persists the interview with status \texttt{SCHEDULED}.
+    \item The newly scheduled interview appears in the interview management page alongside existing records.
+    \item After the interview takes place, the manager records the result by calling \texttt{PUT /api/interviews/\{id\}/result} with the score, notes, and feedback. The service updates the interview status to \texttt{COMPLETED} and persists the evaluation data.
 \end{enumerate}
 
 \section{DATABASE SCHEMA}
@@ -264,23 +324,23 @@ This sequence diagram corresponds to Use Case: \textbf{Schedule Interview} and \
 \rowcolor{gray!20}
 \textbf{Table} & \textbf{Key Columns} \\
 \hline
-\texttt{users} & id, first\_name, last\_name, email, password\_hash, active, must\_change\_password, created\_at, updated\_at \\
+\texttt{users} & id, first\_name, last\_name, email, password\_hash, phone, cin, avatar\_url, active, must\_change\_password, specialty, internship\_year, status, quiz\_score, quiz\_created\_at, quiz\_completed\_at, created\_at, updated\_at \\
 \hline
-\texttt{roles} & id, name (enum: ADMIN, MANAGER, RECEPTIONIST, CANDIDATE) \\
+\texttt{roles} & id, name (ADMIN, MANAGER, RECEPTIONIST, CANDIDATE) \\
 \hline
 \texttt{user\_roles} & user\_id, role\_id \\
 \hline
-\texttt{candidates} & id, first\_name, last\_name, email, phone, cin, user\_id (nullable FK), created\_at, updated\_at \\
+\texttt{candidates} & id, first\_name, last\_name, email, phone, cin, assigned\_quiz\_id, user\_id (nullable FK), created\_at, updated\_at \\
 \hline
 \texttt{internship\_files} & id, candidate\_id (FK), year, university, degree, skills\_tags, created\_at, updated\_at \\
 \hline
-\texttt{documents} & id, application\_id (nullable FK), internship\_file\_id (nullable FK), uploaded\_by (FK), file\_name, file\_path, file\_type, file\_size, document\_type (enum), created\_at \\
+\texttt{documents} & id, application\_id (nullable FK), internship\_file\_id (nullable FK), uploaded\_by (FK), file\_name, file\_path, file\_type, file\_size, document\_type (CV, COVER\_LETTER, TRANSCRIPT, ID\_CARD, PHOTO, OTHER), created\_at \\
 \hline
-\texttt{applications} & id, candidate\_id (FK), project\_id (FK), supervisor\_id (FK), registered\_by (FK), intake\_method (enum), status (enum), manager\_notes, decision\_date, ai\_match\_score, created\_at, updated\_at \\
+\texttt{applications} & id, candidate\_id (FK), project\_id (FK), supervisor\_id (FK), registered\_by (FK), intake\_method (ONLINE, PHYSICAL), status (PENDING..REJECTED), manager\_notes, decision\_date, ai\_match\_score, created\_at, updated\_at \\
 \hline
-\texttt{supervisors} & id, user\_id (FK), full\_name, email, department, expertise\_tags, max\_interns, current\_interns, active \\
+\texttt{supervisors} & id, user\_id (FK), full\_name, email, department, expertise\_tags, max\_interns, current\_interns, bio, active, created\_at \\
 \hline
-\texttt{projects} & id, title, description, domain, technology\_tags, status (enum), ai\_score, submitted\_by (FK), supervisor\_id (FK) \\
+\texttt{projects} & id, title, description, domain, technology\_tags, required\_skills, status (DRAFT, SUBMITTED, APPROVED, REJECTED), ai\_score, submitted\_by (FK), supervisor\_id (FK), created\_at, updated\_at \\
 \hline
 \texttt{quizzes} & id, title, description, duration\_mins, passing\_score, total\_marks, specialty, active, created\_by (FK), created\_at \\
 \hline
@@ -290,12 +350,16 @@ This sequence diagram corresponds to Use Case: \textbf{Schedule Interview} and \
 \hline
 \texttt{quiz\_answers} & id, attempt\_id (FK), question\_id (FK), selected\_option, is\_correct \\
 \hline
-\texttt{interviews} & id, candidate\_id (FK), application\_id (FK), scheduled\_at, interviewer, type (enum), status (enum), score, notes, feedback, created\_at, updated\_at \\
+\texttt{interviews} & id, candidate\_id (FK), application\_id (FK), scheduled\_at, interviewer, type (TECHNICAL, HR), status (SCHEDULED, COMPLETED, CANCELLED), score, notes, feedback, created\_at, updated\_at \\
 \hline
-\texttt{notifications} & id, user\_id (FK), title, message, type (enum), is\_read, link, created\_at \\
+\texttt{notifications} & id, user\_id (FK), title, message, type (INFO, SUCCESS, WARNING, ERROR), is\_read, link, created\_at \\
+\hline
+\texttt{audit\_log} & id, user\_id (FK), action, entity\_type, entity\_id, details, ip\_address, created\_at \\
+\hline
+\texttt{ai\_rankings} & id, ranking\_type (PROJECT\_RANK, CANDIDATE\_MATCH), reference\_id, score, reasoning, supervisor\_id (FK), ranked\_by (FK), created\_at \\
 \hline
 \end{tabular}
-\caption{Complete database schema}
+\caption{Complete database schema (17 tables)}
 \end{table}
 
 \subsection{Normalization Analysis}
@@ -343,5 +407,20 @@ The relational schema follows the entity relationships described in Section 3.3.
     \end{spacing}
 \end{itemize}
 
+\subsection{Diagram Quality and Formal Coherence}
+The UML diagrams presented in this chapter adhere to standard modeling conventions and maintain formal coherence across all levels of abstraction. The following quality criteria were applied:
+
+\renewcommand{\labelitemi}{\tiny$\bullet$}
+\begin{itemize}[leftmargin=2cm, topsep=4pt]
+    \begin{spacing}{1.25}
+        \item \textbf{UML compliance}: Class diagrams follow UML 2.5 notation with correct multiplicity markers (\texttt{1}, \texttt{0..*}, \texttt{0..1}), directed associations for foreign key relationships, and diamond-free aggregation since all relationships are standard associations with explicit JPA annotations. Associations are annotated with fetch types (EAGER vs LAZY) and cascade behaviors where relevant.
+        \item \textbf{Cross-diagram traceability}: Every entity in the class diagram participates in at least one sequence diagram interaction. For example, the \texttt{Candidate} entity appears in the registration sequence, the quiz sequence, and the interview sequence. Each sequence diagram, in turn, corresponds to a specific use case described in Chapter 2, ensuring end-to-end traceability from requirements to design.
+        \item \textbf{Subsystem consistency}: The decomposition into Core Domain, Quiz, and AI subsystems in the class diagram aligns with the five functional modules defined in the system decomposition (Chapter 2). Entities within each subsystem have cohesive responsibilities and minimal cross-subsystem dependencies, reducing coupling and improving maintainability.
+        \item \textbf{Entity-to-table mapping}: Each class diagram entity maps directly to a MySQL database table via JPA \texttt{@Entity} and \texttt{@Table} annotations. Field-level \texttt{@Column} mappings define column names, nullability, lengths, and constraints, ensuring database schema coherence with the domain model. This one-to-one mapping eliminates impedance mismatch between the object-oriented and relational representations.
+        \item \textbf{Behavioral consistency}: Sequence diagrams model the dynamic behavior of the system in a way that is consistent with the static structure defined in the class diagram. Lifelines correspond to controller, service, and entity instances derived from the class model, while messages map to method calls on those instances. The state machine for application lifecycle transitions is consistent with the status field defined on the \texttt{Application} entity, and every valid transition corresponds to a guard condition enforced in the service layer.
+        \item \textbf{Normalization and denormalization balance}: The schema achieves 3NF for transactional data while applying controlled denormalizations (\texttt{Application.aiMatchScore}, \texttt{InternshipFile.skillsTags}) for performance-critical read paths, as detailed in Section 3.5.3. This balance ensures data integrity without sacrificing query performance.
+    \end{spacing}
+\end{itemize}
+
 \section{CONCLUSION}
-This chapter presented the complete technical design of SIPMS, covering the layered architecture, security model, all 16 entities with their relationships and attributes, four key sequence diagrams illustrating the main workflows, and the full database schema with 15 tables. These design decisions provide a solid blueprint for the implementation phase described in the next chapter.
+This chapter presented the complete technical design of SIPMS, covering the three-tier client-server architecture, the JWT-based stateless security model with HS512 signing and BCrypt password hashing, and the full class diagram decomposed into three subsystems (Core Domain with 11 entities, Quiz subsystem with 3 entities, and AI subsystem). The entity-relationship diagram and use case include/extend dependencies were formalised to ensure traceability between the static structure and dynamic behaviour of the system. Five sequence diagrams illustrated the key workflows — authentication, candidate registration, quiz approval and completion, interview scheduling, and CV analysis — each consistent with the use cases defined in Chapter 2. The database schema was presented with 17 tables, normalised to 3NF with controlled denormalisations for performance, and enforced through foreign key, unique, check, and cascade constraints. These design decisions provide a solid blueprint for the implementation phase described in the next chapter.

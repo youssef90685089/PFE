@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -18,6 +19,17 @@ public class CvProjectMatchDto {
     private String roadmap;
     private List<ProjectMatchDto> matchedProjects;
     private String detectedSkills;
+    private String message;
+
+    /** Create an empty result with a user-friendly message */
+    public static CvProjectMatchDto empty(String msg) {
+        return CvProjectMatchDto.builder()
+                .matchedProjects(Collections.emptyList())
+                .detectedSkills("")
+                .roadmap("")
+                .message(msg)
+                .build();
+    }
 
     @Data
     @NoArgsConstructor

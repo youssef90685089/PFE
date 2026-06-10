@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Long> {
     List<Document> findByApplicationId(Long applicationId);
+    List<Document> findByInternshipFileIdIn(List<Long> internshipFileIds);
 }

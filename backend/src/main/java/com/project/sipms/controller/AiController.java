@@ -96,4 +96,20 @@ public class AiController {
                     .body(ApiResponse.error("Failed to read CV file: " + e.getMessage()));
         }
     }
+
+    /**
+     * Match a candidate to projects using their uploaded CV document.
+     * Extracts text from the candidate's stored CV file and runs AI matching.
+     */
+    @PostMapping("/match-candidate/{candidateId}")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @Operation(summary = "Match a candidate to projects using their uploaded CV")
+    public ResponseEntity<ApiResponse<CvProjectMatchDto>> matchCandidate(
+            @PathVariable Long candidateId) {
+        CvProjectMatchDto result = aiService.matchCandidateToProjects(candidateId);
+        if (result.getMessage() != null && !result.getMessage().isBlank()) {
+            return ResponseEntity.ok(ApiResponse.ok(result.getMessage(), result));
+        }
+        return ResponseEntity.ok(ApiResponse.ok("Candidate matched to projects successfully", result));
+    }
 }

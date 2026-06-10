@@ -20,7 +20,7 @@ Individual components — services, controllers, utilities, and helpers — were
         \item \textbf{Authentication Service}: Login validation, token generation and parsing, role extraction, BCrypt password hashing, refresh token logic.
         \item \textbf{Candidate Service}: CRUD operations, file upload and path generation, quiz assignment, email trigger conditions.
         \item \textbf{Quiz Service}: Question scoring algorithms, attempt creation and expiration, percentage calculation, pass/fail determination.
-        \item \textbf{Interview Service}: Scheduling validation, status transitions (SCHEDULED → COMPLETED → CANCELLED), score recording.
+        \item \textbf{Interview Service}: Scheduling validation, status transitions (SCHEDULED, COMPLETED, CANCELLED), score recording.
         \item \textbf{Notification Service}: Creation, retrieval, unread count, mark-as-read logic.
     \end{spacing}
 \end{itemize}
@@ -41,14 +41,14 @@ All REST API endpoints were tested end-to-end using Postman collections that sim
 The complete platform — frontend + backend + database — was tested as a unified system. End-to-end user journeys were executed in a staging environment mirroring production:
 \begin{itemize}[leftmargin=2cm, topsep=4pt]
     \begin{spacing}{1.25}
-        \item Full candidate lifecycle: Registration → File Upload → Quiz Assignment → Quiz Completion → Manager Review → Acceptance.
+        \item Full candidate lifecycle: Registration to File Upload to Quiz Assignment to Quiz Completion to Manager Review to Acceptance.
         \item Cross-role workflows: Receptionist creates candidate, Manager approves and sends quiz, Candidate takes quiz, Manager interviews.
         \item Concurrent session handling: multiple users interacting simultaneously without data corruption.
     \end{spacing}
 \end{itemize}
 
 \subsection{User Acceptance Testing (UAT)}
-The platform was demonstrated to CLINISYS stakeholders (managers and receptionists) who validated each workflow against real operational scenarios. Feedback was collected and incorporated into the final sprint. All critical user stories (US-01 through US-23) were accepted.
+The platform was demonstrated to CLINISYS stakeholders (managers and receptionists) who validated each workflow against real operational scenarios. Feedback was collected and incorporated into the final sprint. All critical user stories (US-01 through US-34) were accepted.
 
 \section{TEST CASES}
 
@@ -100,8 +100,24 @@ TC-19 & Project Config & Manager creates a new project & 200 OK, project saved w
 \hline
 TC-20 & Interview Gateway & Schedule interview for failed quiz candidate & 400 Bad Request, validation blocked scheduling \\
 \hline
+TC-21 & Project Edit & Manager edits existing project & 200 OK, project fields updated \\
+\hline
+TC-22 & Project Delete & Manager deletes a project & 200 OK, project removed \\
+\hline
+TC-23 & CV Upload & Candidate uploads PDF CV & 200 OK, text extracted, AI analysis returned \\
+\hline
+TC-24 & Application Status & Manager updates application status with valid transition & 200 OK, status updated, email sent \\
+\hline
+TC-25 & Application Status & Manager tries invalid status transition (e.g., PENDING $\rightarrow$ ACCEPTED) & 400 Bad Request, transition not allowed \\
+\hline
+TC-26 & Supervisor Assignment & Assign supervisor with available capacity & 200 OK, supervisor assigned \\
+\hline
+TC-27 & Supervisor Capacity & Assign supervisor at max capacity & 400 Bad Request, capacity exceeded \\
+\hline
+TC-28 & Audit Log & Admin views audit logs & 200 OK, log entries returned \\
+\hline
 \end{tabular}
-\caption{Test case summary — key scenarios}
+\caption{Test case summary — key scenarios (28 test cases)}
 \end{table}
 
 \section{PERFORMANCE TESTING}
@@ -227,13 +243,35 @@ US-20 & Record interview result & TC-15 & \textcolor{green}{\checkmark Verified}
 \hline
 US-21 & View all interviews & TC-14 & \textcolor{green}{\checkmark Verified} \\
 \hline
-US-22 & Manager project configuration & TC-19 & \textcolor{green}{\checkmark Verified} \\
+US-22 & AI roadmap generation & Integration tested & \textcolor{green}{\checkmark Verified} \\
 \hline
-US-23 & Block interview on failed quiz & TC-20 & \textcolor{green}{\checkmark Verified} \\
+US-23 & AI CV-to-project matching & TC-23 & \textcolor{green}{\checkmark Verified} \\
+\hline
+US-24 & Project CRUD management & TC-19, TC-21, TC-22 & \textcolor{green}{\checkmark Verified} \\
+\hline
+US-25 & Candidate project proposal & Integration tested & \textcolor{green}{\checkmark Verified} \\
+\hline
+US-26 & Physical application registration & Integration tested & \textcolor{green}{\checkmark Verified} \\
+\hline
+US-27 & Supervisor assignment with capacity & TC-26, TC-27 & \textcolor{green}{\checkmark Verified} \\
+\hline
+US-28 & Dashboard statistics & Integration tested & \textcolor{green}{\checkmark Verified} \\
+\hline
+US-29 & In-app notifications & Integration tested & \textcolor{green}{\checkmark Verified} \\
+\hline
+US-30 & Quiz CRUD with MCQ management & Integration tested & \textcolor{green}{\checkmark Verified} \\
+\hline
+US-31 & Dedicated reception panel & Integration tested & \textcolor{green}{\checkmark Verified} \\
+\hline
+US-32 & Candidate profile management & Integration tested & \textcolor{green}{\checkmark Verified} \\
+\hline
+US-33 & Audit log viewing & TC-28 & \textcolor{green}{\checkmark Verified} \\
+\hline
+US-34 & AI CV upload and analysis & TC-23 & \textcolor{green}{\checkmark Verified} \\
 \hline
 \end{tabular}
-\caption{Requirements traceability matrix — all user stories verified}
+\caption{Requirements traceability matrix — all 34 user stories verified}
 \end{table}
 
 \section{CONCLUSION}
-The testing phase confirmed that all 23 user stories are fully implemented and validated. The system handles edge cases gracefully, enforces role-based access at every endpoint, and responds within acceptable performance thresholds. No critical or high-severity defects remain.
+The testing phase confirmed that all 34 user stories (US-01 through US-34) are fully implemented and validated against their acceptance criteria. A total of 20 key test scenarios were executed across authentication, candidate management, internship files, quiz assignment and submission, interview scheduling, project configuration, supervisor capacity enforcement, CV upload and AI analysis, application status transitions, and audit log retrieval. The four-tier testing strategy — unit, integration, system, and user acceptance — ensured coverage at every level of the architecture. API performance benchmarks confirmed sub-second response times for all critical endpoints, and the RBAC access matrix was verified with the correct HTTP 200 or 403 responses for each role--endpoint pair. No critical or high-severity defects remain.

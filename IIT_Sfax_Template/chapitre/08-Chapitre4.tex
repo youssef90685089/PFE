@@ -40,7 +40,7 @@ Operating System & Windows 10 / 11 (64-bit) \\
 \hline
 Java (JDK) & 17 LTS & Backend runtime \\
 \hline
-Spring Boot & 3.2.x & Backend framework \\
+Spring Boot & 3.2.5 & Backend framework \\
 \hline
 Maven & 3.9.x & Build and dependency management \\
 \hline
@@ -48,7 +48,9 @@ MySQL & 8.0 & Relational database \\
 \hline
 Node.js & 20 LTS & Frontend runtime \\
 \hline
-React (Vite) & 18 / 5.x & Frontend framework \\
+React (Vite 8) & 19 & Frontend framework \\
+\hline
+Tailwind CSS & 4.x & Utility-first CSS \\
 \hline
 VS Code & Latest & Frontend IDE \\
 \hline
@@ -177,26 +179,30 @@ MySQL Workbench & 8.0 & Database management \\
     \caption{Quiz selection modal --- Manager chooses existing quiz or creates default}
 \end{figure}
 
-\section{SPRINT 4 — INTERVIEW AND AI MODULE}
+\section{SPRINT 4 — INTERVIEW, AI, AND ASSIGNMENT MODULE}
 
 \subsection{Backend Components Built}
 \begin{itemize}[leftmargin=2cm, topsep=0pt]
     \begin{spacing}{1.25}
         \item \textbf{Interview entity}: Stores \texttt{scheduledAt}, \texttt{interviewer}, \texttt{type} (TECHNICAL/HR), \texttt{status} (SCHEDULED/COMPLETED/CANCELLED), \texttt{score}, \texttt{notes}, and \texttt{feedback}. Linked via \texttt{@ManyToOne} to both \texttt{Candidate} and \texttt{Application}.
-        \item \textbf{InterviewController}: Exposes \texttt{POST /api/interviews} (create/schedule), \texttt{GET /api/interviews} (list all), \texttt{GET /api/interviews/\{id\}}, \texttt{PUT /api/interviews/\{id\}} (update), \texttt{DELETE /api/interviews/\{id\}}, and \texttt{PUT /api/interviews/\{id\}/result} (record score, notes, feedback, update status to COMPLETED).
-        \item \textbf{InterviewService}: Contains \texttt{createInterview()} with validation (scheduledAt must be in the future), \texttt{updateResult()} (validates status transition, updates score/notes/feedback), and \texttt{getInterviews()} (returns all interviews with candidate names).
+        \item \textbf{InterviewController}: Exposes \texttt{POST /api/interviews} (create/schedule), \texttt{GET /api/interviews} (list all), \texttt{GET /api/interviews/by-status/\{status\}}, \texttt{GET /api/interviews/by-candidate/\{id\}}, \texttt{PUT /api/interviews/\{id\}/result} (record score, notes, feedback), and \texttt{DELETE /api/interviews/\{id\}}.
+        \item \textbf{InterviewService}: Contains \texttt{createInterview()} with validation (scheduledAt must be in the future, quiz must be passed), \texttt{updateResult()} (validates status transition), and sends email notification on scheduling.
         \item \textbf{AiRanking entity}: Stores AI-generated scores with \texttt{rankingType} (PROJECT\_RANK / CANDIDATE\_MATCH), \texttt{referenceId}, \texttt{score} (0.0--1.0), \texttt{reasoning} (AI explanation text), and an optional \texttt{@ManyToOne} to \texttt{Supervisor}.
-        \item \textbf{AiService}: Implements \texttt{rankProjects()} which scores projects by relevance, and \texttt{matchCandidates()} which scores candidates for a given supervisor. Uses a weighted formula combining skill overlap, quiz performance, and academic level. Delegates to GPT-4-mini for reasoning generation.
+        \item \textbf{AiService}: Implements \texttt{rankProjects()} which scores projects by relevance, and \texttt{matchCandidates()} which scores candidates for a given supervisor. Uses a weighted formula combining skill overlap (\texttt{w1=0.40}), quiz performance (\texttt{w2=0.40}), and academic level (\texttt{w3=0.20}).
+        \item \textbf{AiController}: Exposes \texttt{POST /api/ai/rank-projects}, \texttt{POST /api/ai/match-candidates/\{id\}}, \texttt{GET /api/ai/rankings/projects}, \texttt{GET /api/ai/rankings/candidates/\{id\}}, \texttt{POST /api/ai/match-cv-to-projects}, \texttt{POST /api/ai/analyze-cv} (multipart PDF/DOCX upload), and \texttt{POST /api/ai/generate-roadmap}.
+        \item \textbf{CvTextExtractorService}: Extracts text from uploaded CV files using Apache PDFBox (PDF) and Apache POI (DOCX).
     \end{spacing}
 \end{itemize}
 
 \subsection{Frontend Components Built}
 \begin{itemize}[leftmargin=2cm, topsep=0pt]
     \begin{spacing}{1.25}
-        \item \textbf{InterviewPage.jsx}: A manager-facing page listing all interviews with status badges. Includes a "Schedule Interview" modal (date/time picker, interviewer name, type dropdown) and a "Record Result" modal (score input, notes textarea, feedback textarea, status selector).
-        \item \textbf{ApplicationsPage.jsx}: Extended with "Schedule Interview" button for applications in \texttt{QUIZ\_COMPLETED}, \texttt{AI\_EVALUATING}, or \texttt{MANAGER\_REVIEW} status. Triggers the same scheduling flow.
-        \item \textbf{Sidebar.jsx}: Updated with "Candidates" and "Quizzes" navigation links for the MANAGER role, and an "Interviews" link for interview management.
-        \item \textbf{InterviewsApi}: Axios integration with six endpoints (\texttt{getAll}, \texttt{getById}, \texttt{create}, \texttt{update}, \texttt{delete}, \texttt{updateResult}) mapped to the \texttt{/api/interviews} resource.
+        \item \textbf{InterviewPage.jsx}: A manager-facing page listing all interviews with status badges, search filtering, summary stats cards (total/scheduled/completed/cancelled), quiz-passed candidates widget, and upcoming interviews widget. Includes "Schedule Interview" modal (datetime picker, interviewer, type) and "Record Result" modal (score, notes, feedback).
+        \item \textbf{ApplicationsPage.jsx}: Extended with "Schedule Interview" button for applications with passed quiz status, and "Assign Supervisor" modal with capacity validation.
+        \item \textbf{AiInsightsPage.jsx}: Tabbed interface with Project Rankings (trigger AI analysis, sorted score cards) and Candidate Matching (supervisor selector grid, match results with reasoning).
+        \item \textbf{CVUploadPage.jsx}: Drag-and-drop PDF/DOCX upload zone with animated analysis steps, detected skills chips, ranked project cards with AI match scores and reasoning, collapsible 4-week roadmap.
+        \item \textbf{ProjectAssignmentPage.jsx}: Manager-facing page for CV text paste and AI matching to projects.
+        \item \textbf{Sidebar.jsx}: Updated with navigation links for Interviews, AI Insights, CV Upload, My Applications, My Projects, and Notifications.
     \end{spacing}
 \end{itemize}
 
@@ -213,6 +219,12 @@ MySQL Workbench & 8.0 & Database management \\
     \caption{AI Insights page --- Project rankings and candidate matching}
 \end{figure}
 
+\begin{figure}[H]
+    \centering
+    \fbox{\includegraphics[width=13cm]{images/TemplateImages/Image-Exemple.jpg}}
+    \caption{CV Upload page --- AI analysis, project matching, and roadmap}
+\end{figure}
+
 \section{EVALUATION}
 This section evaluates the implementation against key quality metrics to assess how well the built system performs.
 
@@ -221,9 +233,10 @@ The backend codebase follows a strict layered architecture (Controller $\rightar
 
 \begin{itemize}[leftmargin=2cm, topsep=4pt]
     \begin{spacing}{1.25}
-        \item \textbf{Total backend classes}: 16 entities, 8 controllers, 8 services, 15+ DTOs, 12 repositories, 6 security/config classes.
-        \item \textbf{Total frontend components}: 20+ page components, 15+ reusable UI components, 5 context providers, 3 API modules.
+        \item \textbf{Total backend classes}: 16 entities, 16 controllers, 13 services, 20+ DTOs, 12 repositories, 6 security/config classes.
+        \item \textbf{Total frontend components}: 20+ page components, 15+ reusable UI components, 5 context providers, 11 API modules.
         \item \textbf{RESTful design}: All endpoints follow REST conventions with proper HTTP methods (GET, POST, PUT, PATCH, DELETE) and consistent response wrappers (\texttt{ApiResponse<T>}).
+        \item \textbf{Total REST endpoints}: 86 endpoints across 16 controllers, each guarded by \texttt{@PreAuthorize}.
         \item \textbf{Error handling}: Global exception handler (\texttt{@ControllerAdvice}) catches all exceptions and returns structured JSON error responses with appropriate HTTP status codes.
         \item \textbf{Validation}: DTO-level validation using Jakarta \texttt{@NotBlank}, \texttt{@Email}, \texttt{@Size} annotations with automatic 400 Bad Request responses.
     \end{spacing}
@@ -266,7 +279,7 @@ GET /api/interviews & 195 & 340 & Pass (< 2s) \\
 \end{itemize}
 
 \subsection{Coverage Summary}
-The implementation delivers all 21 user stories defined in the product backlog (US-01 through US-21), covering authentication, candidate management, internship files, quiz assignment and grading, interview scheduling, AI-powered matching, and automated email notifications.
+The implementation delivers all 34 user stories defined in the product backlog (US-01 through US-34), covering authentication, candidate management, internship files, quiz assignment and grading, interview scheduling, AI-powered matching, CV analysis and roadmap generation, project management, application lifecycle management, notifications, audit logging, and automated email notifications.
 
 \section{CONCLUSION}
-This chapter presented the complete implementation of the SIPMS platform across four Scrum sprints. Each sprint delivered working, tested software increments. The evaluation confirms that the system meets all functional requirements, performs within acceptable response time thresholds, and enforces security at every layer. The combination of a Spring Boot backend, React frontend, MySQL database, and AI integration produces a robust platform ready for production deployment at CLINISYS.
+This chapter presented the complete implementation of the SIPMS platform across four Scrum sprints. Sprint 1 delivered JWT-based authentication, RBAC, and user management with 7 REST endpoints. Sprint 2 implemented the Reception Panel with candidate CRUD, per-year internship files, and document upload via multipart requests. Sprint 3 delivered the quiz module with configurable MCQ creation, timed candidate interface, auto-scoring, and default quiz generation for manager approval workflows. Sprint 4 completed the system with interview scheduling and result recording, AI-powered project ranking and candidate matching, CV text analysis with roadmap generation, and supervisor assignment with capacity validation. The evaluation confirmed that all 34 user stories are implemented, API endpoints respond within the 2-second threshold, security is enforced at every layer via \texttt{@PreAuthorize} and BCrypt, and the system is production-ready for deployment at CLINISYS.

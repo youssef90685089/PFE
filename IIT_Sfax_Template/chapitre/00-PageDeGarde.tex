@@ -1,120 +1,82 @@
 \thispagestyle{empty}
+\definecolor{titleblue}{RGB}{0,82,155}
+\definecolor{lineyellow}{RGB}{255,192,0}
+
+\begin{tikzpicture}[remember picture,overlay]
+    \node[inner sep=0pt] at (current page.center) {\includegraphics[width=\paperwidth,height=\paperheight]{images/TemplateImages/page_background.jpeg}};
+\end{tikzpicture}
+
 \begin{titlepage}
+\fontfamily{phv}\selectfont
 \begin{center}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% THE HEADER
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-{%
-  \fontsize{9pt}{9pt}\selectfont%
-  \begin{tabularx}
-    {\textwidth}{ @{} p{0.35\textwidth} @{} p{0.02\textwidth} @{} p{0.3\textwidth} @{} p{0.02\textwidth} @{} p{0.35\textwidth} @{} }
-    \centering
-    \noindent
-    Ministry of Higher Education\\
-    and Scientific Research\\
-    \vspace{4pt}
-    International Institute of Technology of Sfax\\
-    &%
-    &%
-    \centering%
-    \multirow{2}{\linewidth}{%
-      \centering%
-      \includegraphics[width=4cm, height=2cm]{images/TemplateImages/IIT-Logo.png}%
-    }%
-    &%
-    &%
-    \centering
-    \multirow{2}{\linewidth}{%
-      \includegraphics[width=5.00cm, height=1.80cm]{images/TemplateImages/IIT-Arab.png}%
-    }%
-    \tabularnewline%
-    \arrayrulecolor{black}
-    \specialrule{0.75pt}{2pt}{0pt}%
-    \specialrule{2.00pt}{1pt}{0pt}%
-  \end{tabularx}
-}
+\begin{tabularx}{\textwidth}{@{} c >{\centering\arraybackslash}X c @{}}
+  \begin{tabular}{c}
+    \includegraphics[width=2.2cm]{images/TemplateImages/coat_of_arms.png}\\[3pt]
+    \textcolor{titleblue}{\fontsize{8pt}{10pt}\selectfont\textbf{Republic of Tunisia}}\\
+    \textcolor{titleblue}{\fontsize{8pt}{10pt}\selectfont\textbf{Ministry of Higher Education}}\\
+    \textcolor{titleblue}{\fontsize{8pt}{10pt}\selectfont\textbf{and Scientific Research}}
+  \end{tabular}
+  &
+  \vspace{-10pt}\includegraphics[width=1.8cm]{images/TemplateImages/tunisia_flag.png}
+  &
+  \vspace{-10pt}\includegraphics[width=4.5cm]{images/TemplateImages/iit_full_logo.png}
+\end{tabularx}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% THE PAGE CONTENT
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{35pt}
+\textcolor{titleblue}{\fontsize{26pt}{30pt}\selectfont\textbf{GRADUATION PROJECT}}
 
 \vspace{20pt}
-{%
-  \renewcommand*{\familydefault}{\defaultFont}%
-  \fontsize{36pt}{42pt}\selectfont
-  Final Year Project
-}
+\fontsize{12pt}{14pt}\selectfont\textbf{Performed at :}
 
-\vspace{6pt}
-\textbf{\textit{Carried out at}}\\
+\vspace{20pt}
+\fontsize{12pt}{14pt}\selectfont Logo de la société
 
-\begin{figure}[H]
+\vspace{30pt}
+\fontsize{11pt}{13pt}\selectfont Elaborated by:
+
+\vspace{5pt}
+\fontsize{24pt}{28pt}\selectfont Full Name
+
+\vspace{30pt}
+\fontsize{11pt}{13pt}\selectfont In view of obtaining the National Diploma of 3 years bachelor in
+
+\vspace{10pt}
+\fontsize{14pt}{18pt}\selectfont\textbf{COMPUTER SCIENCES}
+
+\vspace{20pt}
+\fontsize{11pt}{13pt}\selectfont Entitled :
+
+\vspace{10pt}
+\setlength{\fboxrule}{0.75pt}
+\fcolorbox{lineyellow}{white}{
+  \parbox{0.9\textwidth}{
     \centering
-    \includegraphics[width=0.45\textwidth]{images/TemplateImages/CompanyLogo.png}
-\end{figure}
-
-\textbf{\textit{Presented to}}\\
-
-\vspace{6pt}
-{%
-  \renewcommand*{\familydefault}{\defaultFont}%
-  \fontsize{18pt}{22pt}\selectfont%
-  \textbf{The International Institute of Technology of Sfax}
-}
-
-\vspace{12pt}
-\textbf{\textit{In partial fulfillment of the requirements for the}}\\
-\vspace{4pt}
-\renewcommand*{\familydefault}{\defaultFont}
-\fontsize{14pt}{14pt}\selectfont%
-\textbf{%
-National Engineering Degree in\\
-Computer Science Engineering\\
-}
-
-\vspace{6pt}
-\textbf{\textit{By}}\\
-\vspace{4pt}
-{%
-    \textbf{Youssef AYADI}\\
-}
-
-\vspace{6pt}
-{%
-  \rule{300pt}{2pt}\\
-  \rule{300pt}{0.75pt}\\
-  \renewcommand*{\familydefault}{\defaultFont}
-  \fontsize{17pt}{17pt}\selectfont%
-  \vspace{12pt}
-  \textbf{
-  Smart Internship and\\
-  Project Management System\\
-  (SIPMS --- CLINISYS Platform)\\
+    \vspace{15pt}
+    \fontsize{22pt}{26pt}\selectfont\textbf{PROJECT TITLE}
+    \vspace{15pt}
   }
-  \vspace{6pt}
-  \rule{300pt}{0.75pt}\\
-  \rule{300pt}{2pt}\\
 }
 
-\vspace{16pt}
-Defended on \hspace{2pt} / \hspace{2pt} / 2026, before the examination committee:\\
+\vspace{20pt}
+\fontsize{11pt}{13pt}\selectfont Defended on : D/M/2026
 
-\vspace{16pt}
-\begin{tabular}{p{0.35\linewidth} p{0.3\linewidth}}
-  Mr. Fahmi Kallel & Committee President\\
-  ....................... & Reviewer\\
-  Mrs. Rahma Bouaziz & Academic Supervisor\\
-  Mr. Marwen Hadrich & Industrial Supervisor\\
+\vspace{5pt}
+Committee :
+
+\vspace{10pt}
+\begin{tabular}{l @{\hspace{20pt}} l}
+  Mr. Full Name & --\hspace{10pt}Chairman \\
+  Mr. Full Name & --\hspace{10pt}Examiner \\
+  Mr. Full Name & --\hspace{10pt}Academic supervisor \\
+  Mr. Full Name & --\hspace{10pt}Industrial supervisor \\
 \end{tabular}
 
-\vspace{16pt}
-\begin{center}
-\fontsize{14pt}{18pt}\selectfont
-Academic Year: 2025 / 2026
-\end{center}
-
 \vfill
+
+\textcolor{titleblue}{\fontsize{11pt}{13pt}\selectfont\textbf{ACADEMIC YEAR : 2025-2026}}
+
+\vspace{10pt}
 
 \end{center}
 \end{titlepage}

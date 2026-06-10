@@ -33,6 +33,12 @@ Supervisor assignment and capacity management & Achieved & Supervisor Module \\
 \hline
 Manager project parameterization & Achieved & Project Config Module \\
 \hline
+AI CV analysis and roadmap generation & Achieved & CV Upload + AiService \\
+\hline
+Audit logging and traceability & Achieved & AuditLog entity \\
+\hline
+Physical application registration & Achieved & Reception Panel \\
+\hline
 \end{tabular}
 \caption{Evaluation of project objectives}
 \end{table}
@@ -40,7 +46,7 @@ Manager project parameterization & Achieved & Project Config Module \\
 \section{TECHNOLOGY EVALUATION}
 
 \subsection{Backend: Spring Boot 3.2 + Java 17}
-Spring Boot provided a robust foundation with built-in security, JPA integration, and REST API support. The layered architecture (Controller → Service → Repository) ensured clear separation of concerns and testability.
+Spring Boot provided a robust foundation with built-in security, JPA integration, and REST API support. The layered architecture (Controller $\to$ Service $\to$ Repository) ensured clear separation of concerns and testability.
 
 \subsection{Frontend: React 19 + Vite}
 React's component-based model enabled rapid UI development. Vite's fast build times and HMR significantly improved development productivity. Tailwind CSS allowed consistent styling without writing custom CSS.
@@ -74,4 +80,4 @@ The system leverages a modular AI architecture, utilizing custom weighted scorin
 \end{itemize}
 
 \section{CONCLUSION}
-The SIPMS platform successfully meets all core requirements defined at the start of the project. While some limitations exist, the system is production-ready and deployed at CLINISYS. The modular architecture allows easy addition of future enhancements.
+The SIPMS platform successfully meets all 11 core objectives defined at the start of the project, from multi-role JWT authentication and automated candidate onboarding to AI-powered ranking, CV analysis, and interview management with strict quiz-pass gateways. The Spring Boot backend delivers 86 REST endpoints each guarded by \texttt{@PreAuthorize}, while the React frontend provides role-differentiated dashboards with real-time notifications. The MySQL schema achieves 3NF compliance with controlled denormalisations for performance, and the modular architecture — decomposed into five independent subsystems — allows easy addition of future enhancements such as WebSocket notifications, cloud file storage, and mobile application support. While limitations remain in email volume capacity and local filesystem storage, the system is production-ready and deployed at CLINISYS, delivering a measurable improvement over the previously manual workflow.

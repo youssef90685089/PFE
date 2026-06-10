@@ -1,75 +1,59 @@
 \thispagestyle{empty}
+\definecolor{titleblue}{RGB}{0,82,155}
+\definecolor{lineyellow}{RGB}{255,192,0}
+
+\begin{tikzpicture}[remember picture,overlay]
+    \node[inner sep=0pt] at (current page.center) {\includegraphics[width=\paperwidth,height=\paperheight]{images/TemplateImages/page_background.jpeg}};
+\end{tikzpicture}
+
 \begin{titlepage}
+\fontfamily{phv}\selectfont
 \begin{center}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% THE HEADER
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-{%
-  \fontsize{9pt}{9pt}\selectfont%
-  \begin{tabularx}
-    {\textwidth}{ @{} p{0.35\textwidth} @{} p{0.02\textwidth} @{} p{0.3\textwidth} @{} p{0.02\textwidth} @{} p{0.35\textwidth} @{} }
-    \centering
-    \noindent
-    Ministère de l'Enseignement Supérieur\\%
-    et de la Recherche Scientifique\\%
-    \vspace{4pt}
-    Institut International de Technologie de Sfax\\%
-    &%
-    &%
-    \centering%
-    \multirow{2}{\linewidth}{%
-      \centering%
-      \includegraphics[width=4cm, height=2cm]{images/TemplateImages/IIT-Logo.png}%
-    }%
-    &%
-    &%
-    \centering
-    \multirow{2}{\linewidth}{%
-      \includegraphics[width=5.00cm, height=1.80cm]{images/TemplateImages/IIT-Arab.png}%
-    }%
-    \tabularnewline%
-    \arrayrulecolor{black}
-    \specialrule{0.75pt}{2pt}{0pt}%
-    \specialrule{2.00pt}{1pt}{0pt}%
-  \end{tabularx}
-}
+\begin{tabularx}{\textwidth}{@{} c >{\centering\arraybackslash}X c @{}}
+  \begin{tabular}{c}
+    \includegraphics[width=2.2cm]{images/TemplateImages/coat_of_arms.png}\\[3pt]
+    \textcolor{titleblue}{\fontsize{8pt}{10pt}\selectfont\textbf{Republic of Tunisia}}\\
+    \textcolor{titleblue}{\fontsize{8pt}{10pt}\selectfont\textbf{Ministry of Higher Education}}\\
+    \textcolor{titleblue}{\fontsize{8pt}{10pt}\selectfont\textbf{and Scientific Research}}
+  \end{tabular}
+  &
+  \vspace{-10pt}\includegraphics[width=1.8cm]{images/TemplateImages/tunisia_flag.png}
+  &
+  \vspace{-10pt}\includegraphics[width=4.5cm]{images/TemplateImages/iit_full_logo.png}
+\end{tabularx}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% THE PAGE CONTENT
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{40pt}
+\fontsize{11pt}{13pt}\selectfont\textbf{....................... DEPARTMENT}
 
-\vspace{20pt}
+\vspace{25pt}
+\fontsize{14pt}{18pt}\selectfont\textbf{PROJECT TITLE}
 
-\renewcommand*{\familydefault}{\defaultFont}
-  \fontsize{12pt}{12pt}\selectfont%
-  \textbf{
-  TITRE DU PROJET\\%
-  }
-\vspace{10pt} {%
-  \rule{200pt}{2pt}\\
-  \rule{200pt}{0.75pt}\\
-  \renewcommand*{\familydefault}{\defaultFont}
-  \fontsize{14pt}{14pt}\selectfont%
-  \vspace{10pt}
-  \textbf{Prénom NOM}
-  \vspace{6pt}
-  \rule{200pt}{0.75pt}\\
-  \rule{200pt}{2pt}\\
-}
+\vspace{25pt}
+\fontsize{14pt}{18pt}\selectfont\textbf{FULL NAME}
+
 \end{center}
+
+\vspace{30pt}
+\begin{flushleft}
+\fontsize{11pt}{13pt}\selectfont\textbf{RESUME :}\\[5pt]
+\textcolor{lineyellow}{\rule{\textwidth}{1pt}}\\[10pt]
+\fontsize{10pt}{12pt}\selectfont
+\vspace{20pt}\par
+
 \vspace{20pt}
+\fontsize{11pt}{13pt}\selectfont\textbf{MOTS CLES:} \fontsize{10pt}{12pt}\selectfont MOT 1, MOT2, MOT 3, MOT 4\\[5pt]
+\textcolor{lineyellow}{\rule{\textwidth}{1pt}}
 
-%Français
-\fontsize{12pt}{12pt}\selectfont%
-\underline{\textbf{Résumé:}}\\
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue.\par
+\vspace{30pt}
+\fontsize{11pt}{13pt}\selectfont\textbf{ABSTRACT :}\\[5pt]
+\textcolor{lineyellow}{\rule{\textwidth}{1pt}}\\[10pt]
+\fontsize{10pt}{12pt}\selectfont
+\vspace{20pt}\par
 
-\underline{\textbf{Mots clés:}} Lorem, ipsum, dolor, sit amet, consectetur, adipiscing elit.\\
-
-\underline{\textbf{Abstract:}}\\
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue.\par
-
-\underline{\textbf{Key-words:}} Lorem, ipsum, dolor, sit amet, consectetur, adipiscing elit.\\
+\vspace{20pt}
+\fontsize{11pt}{13pt}\selectfont\textbf{KEYWORDS:} \fontsize{10pt}{12pt}\selectfont WORD1, WORD2, WORD3, WORD4\\[5pt]
+\textcolor{lineyellow}{\rule{\textwidth}{1pt}}
+\end{flushleft}
 
 \end{titlepage}
