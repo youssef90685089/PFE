@@ -123,6 +123,94 @@ Scrum organizes development into short iterations called \textbf{Sprints}, each 
     \end{spacing}
 \end{itemize}
 
+\subsection{Product Backlog}
+The Product Backlog is the single source of truth for all system requirements. It contains 34 user stories prioritized by their business value.
+
+\begin{longtable}{|c|p{2.5cm}|p{8cm}|c|}
+\hline
+\rowcolor{gray!20}
+\textbf{ID} & \textbf{Module} & \textbf{User Story} & \textbf{Priority} \\
+\hline
+\endfirsthead
+
+\hline
+\rowcolor{gray!20}
+\textbf{ID} & \textbf{Module} & \textbf{User Story} & \textbf{Priority} \\
+\hline
+\endhead
+
+US-01 & Auth & As a User, I want to login with role-based access (RBAC) to access only features for my profile. & High \\
+\hline
+US-02 & Auth & As an Admin/Receptionist, I want to create user accounts with auto-generated or temporary passwords. & High \\
+\hline
+US-03 & Auth & As a User, I must change my temporary password on first login for security. & High \\
+\hline
+US-04 & Management & As a Receptionist, I want to register physical dossiers in the system. & High \\
+\hline
+US-05 & Management & As an Admin/Manager, I want to manage users (create, modify, delete, toggle active). & High \\
+\hline
+US-06 & Management & As an Admin/Manager, I want to manage supervisors to assign them to projects. & High \\
+\hline
+US-07 & Candidate & As a Candidate, I want to submit an online application for a project to be evaluated by the system. & High \\
+\hline
+US-08 & AI System & As a Manager, I want the AI to analyze and rank submitted projects to validate the most relevant ones. & High \\
+\hline
+US-09 & AI System & As a Manager, I want the AI to suggest the most suitable supervisor. & Medium \\
+\hline
+US-10 & Evaluation & As a Candidate, I want to take a timed technical quiz to prove my skills. & High \\
+\hline
+US-11 & Evaluation & As a System, I want to auto-correct quizzes and generate scores. & High \\
+\hline
+US-12 & Evaluation & As a Candidate, I want to take a quiz specific to my specialty within 48 hours of assignment. & High \\
+\hline
+US-13 & Management & As a Manager, I want to set candidate application status with valid state transitions. & High \\
+\hline
+US-14 & Notification & As a User, I want to receive automatic notifications at each key step. & Medium \\
+\hline
+US-15 & Dashboard & As a User, I want to be redirected to my specific panel based on my role after login. & High \\
+\hline
+US-16 & Internship File & As a Receptionist, I want to add per-year internship files with optional document upload. & High \\
+\hline
+US-17 & Internship File & As a Receptionist/Manager, I want to view all internship files across candidates in a dedicated tab. & High \\
+\hline
+US-18 & Quiz & As a Manager, I want to approve a candidate and send a quiz. & High \\
+\hline
+US-19 & Interview & As a Manager, I want to schedule interviews for candidates who passed the quiz. & High \\
+\hline
+US-20 & Interview & As a Manager, I want to record interview results and update the interview status. & High \\
+\hline
+US-21 & Interview & As a Manager, I want to view all interviews in a dedicated interview management page. & High \\
+\hline
+US-22 & AI System & As a Candidate, I want the AI to analyze my CV and generate a 4-week project roadmap. & Medium \\
+\hline
+US-23 & AI System & As a Candidate/Manager, I want the AI to match my CV against available projects and rank the top 3 best fits. & High \\
+\hline
+US-24 & Management & As an Admin/Manager, I want to manage projects to maintain the project catalog. & High \\
+\hline
+US-25 & Management & As a Candidate, I want to propose a project idea to be evaluated by the AI and reviewed by the manager. & Medium \\
+\hline
+US-26 & Application & As a Receptionist, I want to register a physical application with candidate linked to a specific project. & High \\
+\hline
+US-27 & Application & As a Manager, I want to assign a supervisor to an application considering supervisor capacity constraints. & High \\
+\hline
+US-28 & Dashboard & As a Manager, I want to view dashboard statistics for monitoring. & Medium \\
+\hline
+US-29 & Notifications & As a User, I want to view, mark as read, and dismiss in-app notifications. & Low \\
+\hline
+US-30 & Quiz & As an Admin/Manager, I want to create quizzes with multiple-choice questions. & High \\
+\hline
+US-31 & Reception & As a Receptionist, I want a dedicated reception panel to manage candidate creation. & High \\
+\hline
+US-32 & Candidate & As a Candidate, I want to view and edit my profile and track my application status. & Medium \\
+\hline
+US-33 & Audit & As an Admin, I want to view audit logs tracking all system actions for compliance. & Low \\
+\hline
+US-34 & AI System & As a Candidate, I want to upload my CV document and have the AI extract skills and match me to suitable projects. & High \\
+\hline
+\caption{Product Backlog for the SIPMS platform}
+\label{tab:product-backlog}
+\end{longtable}
+
 \subsection{Sprint Goals}
 Each sprint was driven by a clearly defined goal that aligned with the overall project roadmap:
 
