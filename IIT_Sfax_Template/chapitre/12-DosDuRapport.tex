@@ -1,59 +1,123 @@
+% ============================================================
+%  DOS DU RAPPORT — Back Cover / Metadata Page
+%  Paste: already \input{chapitre/12-DosDuRapport} in main.tex
+% ============================================================
 \thispagestyle{empty}
+
 \definecolor{titleblue}{RGB}{0,82,155}
 \definecolor{lineyellow}{RGB}{255,192,0}
-
-\begin{tikzpicture}[remember picture,overlay]
-    \node[inner sep=0pt] at (current page.center) {\includegraphics[width=\paperwidth,height=\paperheight]{images/TemplateImages/page_background.jpeg}};
-\end{tikzpicture}
+\definecolor{lightgray}{RGB}{245,245,245}
 
 \begin{titlepage}
 \fontfamily{phv}\selectfont
+
+% ================================================================
+%  TOP RULE
+% ================================================================
+\textcolor{titleblue}{\rule{\textwidth}{2.5pt}}
+\vspace{6pt}
+
+% ================================================================
+%  HEADER — same as front page
+% ================================================================
+\noindent
+\begin{minipage}[t]{4.8cm}
+  \centering
+  \includegraphics[height=2.0cm]{images/TemplateImages/coat_of_arms.png}\\[4pt]
+  {\fontsize{7.5pt}{9.5pt}\selectfont\color{titleblue}%
+   \textbf{Republic of Tunisia}\\[1pt]%
+   \textbf{Ministry of Higher Education}\\[1pt]%
+   \textbf{and Scientific Research}}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{2.5cm}
+  \centering
+  \vspace{2pt}\includegraphics[height=2.5cm]{images/TemplateImages/tunisia_flag.png}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{4.8cm}
+  \centering
+  \includegraphics[height=2.5cm]{images/TemplateImages/iit_full_logo.png}\\[4pt]
+  {\fontsize{7.5pt}{9.5pt}\selectfont\color{titleblue}%
+   \textbf{Private International School of}\\[1pt]%
+   \textbf{Technology at Sfax / IIT}}
+\end{minipage}
+
+\vspace{6pt}
+\textcolor{lineyellow}{\rule{\textwidth}{2pt}}
+
+\vspace{10pt}
+
+% ================================================================
+%  DEPARTMENT + PROJECT IDENTITY
+% ================================================================
 \begin{center}
-
-\begin{tabularx}{\textwidth}{@{} c >{\centering\arraybackslash}X c @{}}
-  \begin{tabular}{c}
-    \includegraphics[width=2.2cm]{images/TemplateImages/coat_of_arms.png}\\[3pt]
-    \textcolor{titleblue}{\fontsize{8pt}{10pt}\selectfont\textbf{Republic of Tunisia}}\\
-    \textcolor{titleblue}{\fontsize{8pt}{10pt}\selectfont\textbf{Ministry of Higher Education}}\\
-    \textcolor{titleblue}{\fontsize{8pt}{10pt}\selectfont\textbf{and Scientific Research}}
-  \end{tabular}
-  &
-  \vspace{-10pt}\includegraphics[width=1.8cm]{images/TemplateImages/tunisia_flag.png}
-  &
-  \vspace{-10pt}\includegraphics[width=4.5cm]{images/TemplateImages/iit_full_logo.png}
-\end{tabularx}
-
-\vspace{40pt}
-\fontsize{11pt}{13pt}\selectfont\textbf{....................... DEPARTMENT}
-
-\vspace{25pt}
-\fontsize{14pt}{18pt}\selectfont\textbf{PROJECT TITLE}
-
-\vspace{25pt}
-\fontsize{14pt}{18pt}\selectfont\textbf{FULL NAME}
-
+  {\fontsize{11pt}{13pt}\selectfont\textbf{COMPUTER SCIENCES DEPARTMENT}}
 \end{center}
 
-\vspace{30pt}
+\vspace{16pt}
+\begin{center}
+  {\fontsize{16pt}{20pt}\selectfont\textbf{\textcolor{titleblue}{%
+    Smart Internship and Project Management System\\[4pt]--- SIPMS}}}
+\end{center}
+
+\vspace{10pt}
+\begin{center}
+  {\fontsize{13pt}{16pt}\selectfont\textbf{Youssef AYADI}}
+\end{center}
+
+\vspace{10pt}
+\textcolor{titleblue}{\rule{\textwidth}{0.8pt}}
+
+% ================================================================
+%  RESUME (French abstract)
+% ================================================================
+\vspace{18pt}
 \begin{flushleft}
-\fontsize{11pt}{13pt}\selectfont\textbf{RESUME :}\\[5pt]
-\textcolor{lineyellow}{\rule{\textwidth}{1pt}}\\[10pt]
-\fontsize{10pt}{12pt}\selectfont
-\vspace{20pt}\par
 
-\vspace{20pt}
-\fontsize{11pt}{13pt}\selectfont\textbf{MOTS CLES:} \fontsize{10pt}{12pt}\selectfont MOT 1, MOT2, MOT 3, MOT 4\\[5pt]
-\textcolor{lineyellow}{\rule{\textwidth}{1pt}}
+{\fontsize{11.5pt}{14pt}\selectfont\textbf{RÉSUMÉ :}}\\[5pt]
+\textcolor{lineyellow}{\rule{\textwidth}{1.5pt}}\\[10pt]
+{\fontsize{10pt}{14pt}\selectfont
+Ce projet porte sur la conception et le développement de SIPMS (Smart Internship and Project
+Management System), une plateforme web intelligente dédiée à la gestion des stages et projets
+de fin d'études. Le système intègre un module d'intelligence artificielle pour le classement
+automatique des candidatures, une gestion complète des utilisateurs (étudiants, encadrants,
+entreprises) et un suivi en temps réel des candidatures et entretiens.
+}\\[8pt]
+{\fontsize{11pt}{13pt}\selectfont\textbf{MOTS CLÉS :}\quad}%
+{\fontsize{10pt}{13pt}\selectfont Gestion de stages, IA, Spring Boot, React, Candidatures, Entretiens}\\[5pt]
+\textcolor{lineyellow}{\rule{\textwidth}{1.5pt}}
 
-\vspace{30pt}
-\fontsize{11pt}{13pt}\selectfont\textbf{ABSTRACT :}\\[5pt]
-\textcolor{lineyellow}{\rule{\textwidth}{1pt}}\\[10pt]
-\fontsize{10pt}{12pt}\selectfont
-\vspace{20pt}\par
+% ================================================================
+%  ABSTRACT (English)
+% ================================================================
+\vspace{22pt}
+{\fontsize{11.5pt}{14pt}\selectfont\textbf{ABSTRACT :}}\\[5pt]
+\textcolor{lineyellow}{\rule{\textwidth}{1.5pt}}\\[10pt]
+{\fontsize{10pt}{14pt}\selectfont
+This project focuses on the design and development of SIPMS (Smart Internship and Project
+Management System), an intelligent web platform dedicated to managing internships and final-year
+projects. The system integrates an AI ranking module for automated candidate scoring, full
+user management (students, supervisors, companies), and real-time tracking of applications
+and interviews.
+}\\[8pt]
+{\fontsize{11pt}{13pt}\selectfont\textbf{KEYWORDS :}\quad}%
+{\fontsize{10pt}{13pt}\selectfont Internship Management, AI, Spring Boot, React, Applications, Interviews}\\[5pt]
+\textcolor{lineyellow}{\rule{\textwidth}{1.5pt}}
 
-\vspace{20pt}
-\fontsize{11pt}{13pt}\selectfont\textbf{KEYWORDS:} \fontsize{10pt}{12pt}\selectfont WORD1, WORD2, WORD3, WORD4\\[5pt]
-\textcolor{lineyellow}{\rule{\textwidth}{1pt}}
 \end{flushleft}
+
+% ================================================================
+%  BOTTOM RULE + ACADEMIC YEAR
+% ================================================================
+\vfill
+
+\textcolor{titleblue}{\rule{\textwidth}{0.8pt}}
+\vspace{4pt}
+\begin{center}
+  {\fontsize{11pt}{13pt}\selectfont\textbf{\textcolor{titleblue}{ACADEMIC YEAR : 2025 -- 2026}}}
+\end{center}
+\vspace{6pt}
+\textcolor{titleblue}{\rule{\textwidth}{2.5pt}}
 
 \end{titlepage}
